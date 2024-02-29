@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+from pyrogram.errors import FloodWait
 import random
 import time
 from argparse import ArgumentParser
@@ -29,20 +30,25 @@ async def spin(_, message):
 
     if user_id in last_command_usage and current_time - last_command_usage[user_id] < 10:
         wait_time = int(10 - (current_time - last_command_usage[user_id]))
-        await message.reply_text(f"Пожалуйста, подождите {wait_time} секунд перед повторным прокрутом.")
+        msg_wait = await message.reply_text(f"Пожалуйста, подождите {wait_time} секунд перед повторным прокрутом.")
         return
     last_command_usage[user_id] = current_time
 
+    prev_spin_display = None
     msg = await message.reply_text("Вращение барабанов...")
     await asyncio.sleep(1)
     try:
         for _ in range(random.randint(4, 10)):
-            spin_display = [random.choice(symbols) for _ in range(3)]
+            spin_display = prev_spin_display
+            while spin_display == prev_spin_display:
+                spin_display = [random.choice(symbols) for _ in range(3)]
+            prev_spin_display = spin_display
             await msg.edit_text("🎰 "+' - '.join(spin_display)+" 🎰")
             await asyncio.sleep(rangecount)
-    except:
-        await asyncio.sleep(3)
+    except FloodWait as e:
+        await asyncio.sleep(e.value)
         await msg.edit_text("🎰 "+"⛔️ - ⛔️ - ⛔️"+" 🎰"+"\n"+"Автомат заклинило! Повторите ещё раз!")
+        return
 
     result = [random.choice(symbols) for _ in range(3)]
     if len(set(result)) == 1:
