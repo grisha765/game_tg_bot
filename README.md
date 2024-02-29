@@ -19,7 +19,7 @@ venv/bin/pip3 install pyrogram tgcrypto aiohttp
 1. **Start an Instance**: Start an instance from the `venv` virtual environment by entering your `TOKEN` using the `-t` argument received from @BotFather.
 
 ```shell
-venv/bin/python3 main.py -t TOKEN -cpu CPU_THREADS -m MODEL_SIZE
+venv/bin/python3 main.py -t TOKEN
 ```
 
 ### Features
