@@ -19,7 +19,7 @@ app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 last_command_usage = {}
 rangecount = 0.1
 symbols = ['🍒', '🍋', '🍏', '🍆']
-filter_words = ["казино", "спин", "казик", "слот", "рулетк", "ставк", "джекпот", "азарт", "барабан", "выигрыш", "автомат"]
+filter_words = ["казино", "спин", "казик", "слот", "рулетк", "став", "джекпот", "азарт", "барабан", "выигрыш", "автомат"]
 filter_regex = re.compile(r'\b(?:' + '|'.join(filter_words) + r')(?:[а-я]*\b)', flags=re.IGNORECASE)
 
 @app.on_message(filters.regex(filter_regex))
