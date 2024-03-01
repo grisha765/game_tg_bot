@@ -1,5 +1,4 @@
 from pyrogram import Client, filters
-from pyrogram.errors import FloodWait
 import random
 import time
 from argparse import ArgumentParser
@@ -53,7 +52,7 @@ async def spin(_, message):
         msg_wait = await message.reply_text(f"Пожалуйста, подождите {wait_time} секунд перед повторным прокрутом.")
         del active_spins[user_id]
         return
-    #last_command_usage[user_id] = current_time
+    last_command_usage[user_id] = current_time
 
     prev_spin_display = None
     msg = await message.reply_text("Вращение барабанов...")
@@ -68,9 +67,12 @@ async def spin(_, message):
             prev_spin_display = spin_display
             await msg.edit_text("🎰 "+' - '.join(spin_display)+" 🎰")
             await asyncio.sleep(0.1)
-    except FloodWait as e:
+    except pyrogram.errors.FloodWait as e:
         await asyncio.sleep(e.value)
         await msg.edit_text("🎰 "+"⛔️ - ⛔️ - ⛔️"+" 🎰"+"\n"+"Автомат заклинило! Повторите ещё раз!")
+        del active_spins[user_id]
+        return
+    except pyrogram.errors.exceptions.forbidden_403.ChatWriteForbidden as e:
         del active_spins[user_id]
         return
 
@@ -98,7 +100,7 @@ async def spin(_, message):
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[4])
             update_wins(user_id)
     else:
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.1) #проигрыш
         await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[5])
 
 def update_wins(user_id):
