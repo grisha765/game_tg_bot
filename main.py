@@ -5,6 +5,7 @@ import time
 from argparse import ArgumentParser
 import asyncio
 import re
+import json
 
 parser = ArgumentParser(description='Telegram-бот с аргументом токена и потоками процессора.')
 parser.add_argument('-t', '--token', type=str, help='Токен Telegram-бота')
@@ -18,12 +19,24 @@ app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 last_command_usage = {}
 active_spins = {}
 random_spins_info = {}
+wins_database = "wins.json"
 
 symbols = ['🍒', '🍋', '🍏', '🍆']
 phrases = ['Вишня! Поздравляю!', 'Лови лимон!', 'Яблоко база.', 'БАКЛАЖАН! У вас ДЖЕКПОТ! Вставьте его поглубже...', 'Поздравляем! Вы выиграли!', 'Увы, вы проиграли. Попробуйте ещё раз!']
 
 filter_words = ["казино", "спин", "казик", "слот", "рулетк", "став", "джекпот", "азарт", "барабан", "выигрыш", "автомат", "побед", "перемо"]
 filter_regex = re.compile(r'\b(?:' + '|'.join(filter_words) + r')(?:[а-я]*\b)', flags=re.IGNORECASE)
+
+def load_wins_database():
+    try:
+        with open(wins_database, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}
+
+def save_wins_database(data):
+    with open(wins_database, 'w') as file:
+        json.dump(data, file)
 
 @app.on_message(filters.regex(filter_regex))
 async def spin(_, message):
@@ -40,7 +53,7 @@ async def spin(_, message):
         msg_wait = await message.reply_text(f"Пожалуйста, подождите {wait_time} секунд перед повторным прокрутом.")
         del active_spins[user_id]
         return
-    last_command_usage[user_id] = current_time
+    #last_command_usage[user_id] = current_time
 
     prev_spin_display = None
     msg = await message.reply_text("Вращение барабанов...")
@@ -67,20 +80,43 @@ async def spin(_, message):
         if result[0] == symbols[0]: #вишня
             await asyncio.sleep(0.1)
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[0])
+            update_wins(user_id)
         if result[0] == symbols[1]: #лимон
             await asyncio.sleep(0.1)
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[1])
+            update_wins(user_id)
         if result[0] == symbols[2]: #яблоко
             await asyncio.sleep(0.1)
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[2])
+            update_wins(user_id)
         if result[0] == symbols[3]: #баклажан
             await asyncio.sleep(0.1)
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[3])
+            update_wins(user_id)
         else:
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.1) #победа
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[4])
+            update_wins(user_id)
     else:
         await asyncio.sleep(0.1)
         await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[5])
+
+def update_wins(user_id):
+    wins_data = load_wins_database()
+    if str(user_id) in wins_data:
+        wins_data[str(user_id)] += 1
+    else:
+        wins_data[str(user_id)] = 1
+    save_wins_database(wins_data)
+
+@app.on_message(filters.command("wins"))
+async def check_wins(_, message):
+    user_id = message.from_user.id
+    wins_data = load_wins_database()
+    if str(user_id) in wins_data:
+        wins_count = wins_data[str(user_id)]
+        await message.reply_text(f"Ваши победы: {wins_count}")
+    else:
+        await message.reply_text("У вас пока нет побед.")
 
 app.run()
