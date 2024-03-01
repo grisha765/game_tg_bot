@@ -38,7 +38,7 @@ async def spin(_, message):
     msg = await message.reply_text("Вращение барабанов...")
     await asyncio.sleep(1)
     try:
-        for _ in range(random.randint(4, 10)):
+        for _ in range(random.randint(4, 8)):
             spin_display = prev_spin_display
             while spin_display == prev_spin_display:
                 spin_display = [random.choice(symbols) for _ in range(3)]
