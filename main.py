@@ -93,22 +93,27 @@ async def spin(_, message):
             await asyncio.sleep(0.1)
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[0])
             update_wins(user_id)
+            return
         if result[0] == symbols[1]: #лимон
             await asyncio.sleep(0.1)
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[1])
             update_wins(user_id)
+            return
         if result[0] == symbols[2]: #яблоко
             await asyncio.sleep(0.1)
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[2])
             update_wins(user_id)
+            return
         if result[0] == symbols[3]: #баклажан
             await asyncio.sleep(0.1)
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[3])
             update_wins(user_id)
+            return
         else:
             await asyncio.sleep(0.1) #победа
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[4])
             update_wins(user_id)
+            return
     else:
         await asyncio.sleep(0.1) #проигрыш
         await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[5])
