@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+from pyrogram.errors import FloodWait
 import random
 import time
 from argparse import ArgumentParser
@@ -43,19 +44,31 @@ async def spin(_, message):
     user_id = message.from_user.id
 
     if user_id in active_spins:
-        msg_wait = await message.reply_text("Вы уже вращаете барабан. Подождите, пока текущее вращение завершится.")
+        try:
+            msg_wait = await message.reply_text("Вы уже вращаете барабан. Подождите, пока текущее вращение завершится.")
+        except:
+            del active_spins[user_id]
+            return
         return
     active_spins[user_id] = True
 
     if user_id in last_command_usage and current_time - last_command_usage[user_id] < (10 + random_spins_info[user_id]):
         wait_time = int((10 + random_spins_info[user_id]) - (current_time - last_command_usage[user_id]))
-        msg_wait = await message.reply_text(f"Пожалуйста, подождите {wait_time} секунд перед повторным прокрутом.")
+        try:
+            msg_wait = await message.reply_text(f"Пожалуйста, подождите {wait_time} секунд перед повторным прокрутом.")
+        except:
+            del active_spins[user_id]
+            return
         del active_spins[user_id]
         return
     last_command_usage[user_id] = current_time
 
     prev_spin_display = None
-    msg = await message.reply_text("Вращение барабанов...")
+    try:
+        msg = await message.reply_text("Вращение барабанов...")
+    except:
+        del active_spins[user_id]
+        return
     await asyncio.sleep(1)
     try:
         random_spins = random.randint(4, 8)
@@ -67,12 +80,9 @@ async def spin(_, message):
             prev_spin_display = spin_display
             await msg.edit_text("🎰 "+' - '.join(spin_display)+" 🎰")
             await asyncio.sleep(0.1)
-    except pyrogram.errors.FloodWait as e:
+    except FloodWait as e:
         await asyncio.sleep(e.value)
         await msg.edit_text("🎰 "+"⛔️ - ⛔️ - ⛔️"+" 🎰"+"\n"+"Автомат заклинило! Повторите ещё раз!")
-        del active_spins[user_id]
-        return
-    except pyrogram.errors.exceptions.forbidden_403.ChatWriteForbidden as e:
         del active_spins[user_id]
         return
 
