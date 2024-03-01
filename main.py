@@ -85,6 +85,9 @@ async def spin(_, message):
         await msg.edit_text("🎰 "+"⛔️ - ⛔️ - ⛔️"+" 🎰"+"\n"+"Автомат заклинило! Повторите ещё раз!")
         del active_spins[user_id]
         return
+    except:
+        del active_spins[user_id]
+        return
 
     del active_spins[user_id]
     result = [random.choice(symbols) for _ in range(3)]
