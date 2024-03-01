@@ -61,6 +61,7 @@ async def spin(_, message):
         del active_spins[user_id]
         return
 
+    del active_spins[user_id]
     result = [random.choice(symbols) for _ in range(3)]
     if len(set(result)) == 1:
         if result[0] == symbols[0]: #вишня
@@ -81,6 +82,5 @@ async def spin(_, message):
     else:
         await asyncio.sleep(0.1)
         await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[5])
-    del active_spins[user_id]
 
 app.run()
