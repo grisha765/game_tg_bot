@@ -71,7 +71,7 @@ async def spin(_, message):
         return
     await asyncio.sleep(1)
     try:
-        random_spins = random.randint(4, 8)
+        random_spins = 4
         random_spins_info[user_id] = random_spins
         for _ in range(random_spins):
             spin_display = prev_spin_display
