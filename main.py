@@ -192,7 +192,6 @@ async def spin(_, message):
         except:
             del active_spins[user_id]
             return
-        del active_spins[user_id]
         return
     last_command_usage_user[user_id] = current_time
 
