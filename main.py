@@ -32,7 +32,7 @@ filter_regex = re.compile(r'\b(?:' + '|'.join(filter_words) + r')(?:[а-я]*\b)'
 #помощь команда /help
 @app.on_message(filters.command("help"))
 def check_help(_, message):
-    message.reply_text("Команды бота:\n/help - помощь.\n/wins - победы.\n/status - посмотреть заданные эмодзи и фразы.\n/set задать кастомные эмодзи и победные фразы.\nПример: /set 🍒:Вишня. 🍋:Лимон. 🍏:Яблоко. 🍆:Баклажан.\nЭмодзи Telegram Premium не поддерживаются")
+    message.reply_text("Команды бота:\n/help - помощь.\n/wins - победы.\n/status - посмотреть заданные эмодзи и фразы.\n/set - задать кастомные эмодзи и победные фразы.\nПример: /set 🍒:Вишня. 🍋:Лимон. 🍏:Яблоко. 🍆:Баклажан.\nЭмодзи Telegram Premium не поддерживаются")
 
 def load_wins_database():
     try:
@@ -109,39 +109,47 @@ def set_emoji(client, message):
 
     if len(message.command) >= 2:
         data = load_emoji_database(chat_id)
-        emojis_with_phrases = " ".join(message.command[1:]).split()
-        if len(emojis_with_phrases) == 4:
-            new_emojis = []
-            new_phrases = []
-            for emoji_with_phrase in emojis_with_phrases:
-                emoji, phrase = emoji_with_phrase.split(":")
-                if len(emoji) > 2:
-                    msg_error = message.reply("Ошибка: Допускается вводить только одно эмодзи для каждой победной фразы.")
-                    del last_command_usage_group[chat_id]
-                    time.sleep(10)
-                    msg_error.delete()
-                    return
-                if len(phrase) < 1:
-                    msg_error = message.reply("Ошибка: Отсутствуют победные фразы.")
-                    del last_command_usage_group[chat_id]
-                    time.sleep(10)
-                    msg_error.delete()
-                    return
-                if is_emoji(emoji):
-                    new_emojis.append(emoji)
-                    new_phrases.append(phrase)
-                else:
-                    msg_error = message.reply("Ошибка: Недопустимый символ эмодзи.")
-                    del last_command_usage_group[chat_id]
-                    time.sleep(10)
-                    msg_error.delete()
-                    return
-        else:
-            msg_error = message.reply("Ошибка: Минимум 4 эмодзи и победных фраз.")
+        emojis_with_phrases = []
+        for i in range(1, len(message.command)):
+            if ':' in message.command[i]:
+                emojis_with_phrases.append(message.command[i])
+            elif i != 0:
+                emojis_with_phrases[-1] += ' ' + message.command[i]
+        count_colons = 0
+        for item in emojis_with_phrases:
+            count_colons += item.count(':')
+        if count_colons != 4:
+            msg_error = message.reply("Ошибка: Нужно 4 эмодзи и победных фраз.")
             del last_command_usage_group[chat_id]
             time.sleep(10)
             msg_error.delete()
             return
+        print(emojis_with_phrases)
+        new_emojis = []
+        new_phrases = []
+        for emoji_with_phrase in emojis_with_phrases:
+            emoji, phrase = emoji_with_phrase.split(":")
+            if len(emoji) > 2:
+                msg_error = message.reply("Ошибка: Допускается вводить только одно эмодзи для каждой победной фразы.")
+                del last_command_usage_group[chat_id]
+                time.sleep(10)
+                msg_error.delete()
+                return
+            if len(phrase) < 1:
+                msg_error = message.reply("Ошибка: Отсутствуют победные фразы.")
+                del last_command_usage_group[chat_id]
+                time.sleep(10)
+                msg_error.delete()
+                return
+            if is_emoji(emoji):
+                new_emojis.append(emoji)
+                new_phrases.append(phrase)
+            else:
+                msg_error = message.reply("Ошибка: Недопустимый символ эмодзи.")
+                del last_command_usage_group[chat_id]
+                time.sleep(10)
+                msg_error.delete()
+                return
 
         data["emoji"] = new_emojis
         data["phrases"] = new_phrases
