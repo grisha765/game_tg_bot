@@ -79,7 +79,7 @@ async def spin(_, message):
                 spin_display = [random.choice(symbols) for _ in range(3)]
             prev_spin_display = spin_display
             await msg.edit_text("🎰 "+' - '.join(spin_display)+" 🎰")
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
     except FloodWait as e:
         await asyncio.sleep(e.value)
         await msg.edit_text("🎰 "+"⛔️ - ⛔️ - ⛔️"+" 🎰"+"\n"+"Автомат заклинило! Повторите ещё раз!")
@@ -93,32 +93,32 @@ async def spin(_, message):
     result = [random.choice(symbols) for _ in range(3)]
     if len(set(result)) == 1:
         if result[0] == symbols[0]: #вишня
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[0])
             update_wins(user_id)
             return
         if result[0] == symbols[1]: #лимон
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[1])
             update_wins(user_id)
             return
         if result[0] == symbols[2]: #яблоко
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[2])
             update_wins(user_id)
             return
         if result[0] == symbols[3]: #баклажан
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[3])
             update_wins(user_id)
             return
         else:
-            await asyncio.sleep(0.1) #победа
+            await asyncio.sleep(0.5) #победа
             await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[4])
             update_wins(user_id)
             return
     else:
-        await asyncio.sleep(0.1) #проигрыш
+        await asyncio.sleep(0.5) #проигрыш
         await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+phrases[5])
 
 def update_wins(user_id):
