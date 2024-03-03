@@ -124,7 +124,7 @@ def set_emoji(client, message):
             time.sleep(10)
             msg_error.delete()
             return
-        print(emojis_with_phrases)
+
         new_emojis = []
         new_phrases = []
         for emoji_with_phrase in emojis_with_phrases:
