@@ -18,7 +18,6 @@ bot_token = args.token
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 last_command_usage = {}
 active_spins = {}
-random_spins_info = {}
 wins_database = "wins.json"
 
 symbols = ['🍒', '🍋', '🍏', '🍆']
@@ -52,8 +51,8 @@ async def spin(_, message):
         return
     active_spins[user_id] = True
 
-    if user_id in last_command_usage and current_time - last_command_usage[user_id] < (10 + random_spins_info[user_id]):
-        wait_time = int((10 + random_spins_info[user_id]) - (current_time - last_command_usage[user_id]))
+    if user_id in last_command_usage and current_time - last_command_usage[user_id] < 10:
+        wait_time = int(10 - (current_time - last_command_usage[user_id]))
         try:
             msg_wait = await message.reply_text(f"Пожалуйста, подождите {wait_time} секунд перед повторным прокрутом.")
         except:
@@ -71,9 +70,8 @@ async def spin(_, message):
         return
     await asyncio.sleep(1)
     try:
-        random_spins = 4
-        random_spins_info[user_id] = random_spins
-        for _ in range(random_spins):
+        spins = 4
+        for _ in range(spins):
             spin_display = prev_spin_display
             while spin_display == prev_spin_display:
                 spin_display = [random.choice(symbols) for _ in range(3)]
