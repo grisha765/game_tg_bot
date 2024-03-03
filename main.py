@@ -186,6 +186,7 @@ async def spin(_, message):
         wait_time = int(10 - (current_time - last_command_usage_user[user_id]))
         try:
             msg_wait = await message.reply_text(f"Пожалуйста, подождите {wait_time} секунд перед повторным прокрутом.")
+            del active_spins[user_id]
             await asyncio.sleep(10)
             await msg_wait.delete()
         except:
