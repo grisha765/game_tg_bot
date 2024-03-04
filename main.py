@@ -124,6 +124,17 @@ def set_emoji(client, message):
             time.sleep(10)
             msg_error.delete()
             return
+        emoji_set = set()
+        for item in emojis_with_phrases:
+            emoji, _ = item.split(":")
+            if emoji in emoji_set:
+                msg_error = message.reply("Ошибка: Обнаружены повторяющиеся эмодзи.")
+                del last_command_usage_group[chat_id]
+                time.sleep(10)
+                msg_error.delete()
+                return
+            else:
+                emoji_set.add(emoji)
         new_emojis = []
         new_phrases = []
         for emoji_with_phrase in emojis_with_phrases:
@@ -149,7 +160,6 @@ def set_emoji(client, message):
                 time.sleep(10)
                 msg_error.delete()
                 return
-
         data["emoji"] = new_emojis
         data["phrases"] = new_phrases
         save_emoji_database(data, chat_id)
