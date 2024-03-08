@@ -27,3 +27,4 @@ venv/bin/python3 main.py -t TOKEN
 1. Simulates a slot machine game within the Telegram messaging platform.
 2. Supports multi-user interaction.
 3. Implements cooldown functionality to prevent spamming of the slot machine.
+4. You can set emojis and winning phrases for them for each group.
