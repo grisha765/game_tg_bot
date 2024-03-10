@@ -69,6 +69,7 @@ def top_command(client, message):
     wins_data = load_wins_database()
     sorted_data = sorted(wins_data.items(), key=lambda x: x[1], reverse=True)
     top_message = "Топ победителей:\n"
+    top_count = 0
     for i, (user_id, victories) in enumerate(sorted_data, start=1):
         try:
             user = client.get_users(user_id)
@@ -80,7 +81,8 @@ def top_command(client, message):
                 username = user.first_name
             else:
                 username = f"user{user_id}"
-            top_message += f"{i}) {username}: {victories}\n"
+            top_count += 1
+            top_message += f"{top_count}) {username}: {victories}\n"
         except Exception as e:
             continue
 
