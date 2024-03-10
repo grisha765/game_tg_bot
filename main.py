@@ -222,8 +222,8 @@ async def spin(_, message):
         return
     active_spins[user_id] = True
 
-    if user_id in last_command_usage_user and current_time - last_command_usage_user[user_id] < 10:
-        wait_time = int(10 - (current_time - last_command_usage_user[user_id]))
+    if user_id in last_command_usage_user and current_time - last_command_usage_user[user_id] < 60:
+        wait_time = int(60 - (current_time - last_command_usage_user[user_id]))
         try:
             msg_wait = await message.reply_text(f"Пожалуйста, подождите {wait_time} секунд перед повторным прокрутом.")
             del active_spins[user_id]
