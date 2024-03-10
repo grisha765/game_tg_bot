@@ -73,7 +73,7 @@ def top_command(client, message):
         try:
             user = client.get_users(user_id)
             if user.username:
-                username = f"@{user.username}"
+                username = f"{user.username}"
             elif user.first_name and user.last_name:
                 username = f"{user.first_name} {user.last_name}"
             elif user.first_name:
