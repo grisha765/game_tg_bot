@@ -26,8 +26,7 @@ last_command_usage_group = {}
 active_spins = {}
 wins_database = os.path.join("bd", "wins.json")
 
-filter_words = ["казино", "спин", "казик", "слот", "рулетк", "став", "джекпот", "азарт", "барабан", "выигрыш", "автомат", "побед", "перемо", "рол"]
-filter_regex = re.compile(r'\b(?:' + '|'.join(filter_words) + r')(?:[а-я]*\b)', flags=re.IGNORECASE)
+filter_words = ["казино", "спин", "казик", "слот", "рулетк", "ставка", "джекпот", "азарт", "барабан", "выигрыш", "автомат", "победа", "перемога", "рол"]
 
 #помощь команда /help
 @app.on_message(filters.command("help"))
@@ -64,7 +63,7 @@ def check_wins(_, message):
     else:
         message.reply_text("У вас пока нет побед.")
 
-@app.on_message(filters.command("top", prefixes="/") & filters.group)
+@app.on_message(filters.command("top") & filters.group)
 def top_command(client, message):
     wins_data = load_wins_database()
     sorted_data = sorted(wins_data.items(), key=lambda x: x[1], reverse=True)
@@ -205,7 +204,7 @@ def status(client, message):
     message.reply(status_text)
 
 #игра
-@app.on_message(filters.regex(filter_regex) & filters.group)
+@app.on_message(filters.command("spin", prefix="/") & filters.group)
 async def spin(_, message):
     chat_id = message.chat.id
     data = load_emoji_database(chat_id)
