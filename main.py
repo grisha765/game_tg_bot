@@ -32,7 +32,7 @@ filter_regex = re.compile(r'\b(?:' + '|'.join(filter_words) + r')(?:[а-я]*\b)'
 #помощь команда /help
 @app.on_message(filters.command("help"))
 def check_help(_, message):
-    message.reply_text("Команды бота:\n/help - помощь.\n/wins - победы.\n/status - посмотреть заданные эмодзи и фразы.\n/set - задать кастомные эмодзи и победные фразы.\nПример: /set 🍒:Вишня. 🍋:Лимон. 🍏:Яблоко. 🍆:Баклажан.\nЭмодзи Telegram Premium не поддерживаются")
+    message.reply_text("Команды бота:\n/help - помощь.\n/wins - победы.\n/top - топ победителей.\n/status - посмотреть заданные эмодзи и фразы.\n/set - задать кастомные эмодзи и победные фразы.\nПример: /set 🍒:Вишня. 🍋:Лимон. 🍏:Яблоко. 🍆:Баклажан.\nЭмодзи Telegram Premium не поддерживаются")
 
 def load_wins_database():
     try:
@@ -63,6 +63,29 @@ def check_wins(_, message):
         message.reply_text(f"Ваши победы: {wins_count}")
     else:
         message.reply_text("У вас пока нет побед.")
+
+@app.on_message(filters.command("top", prefixes="/") & filters.group)
+def top_command(client, message):
+    wins_data = load_wins_database()
+    sorted_data = sorted(wins_data.items(), key=lambda x: x[1], reverse=True)
+    top_message = "Топ победителей:\n"
+    for i, (user_id, victories) in enumerate(sorted_data, start=1):
+        try:
+            user = client.get_users(user_id)
+            if user.username:
+                username = f"@{user.username}"
+            elif user.first_name and user.last_name:
+                username = f"{user.first_name} {user.last_name}"
+            elif user.first_name:
+                username = user.first_name
+            else:
+                username = f"user{user_id}"
+        except Exception as e:
+            continue
+
+        top_message += f"{i}) {username}: {victories}\n"
+
+    message.reply_text(top_message, disable_notification=True)
 
 def load_emoji_database(chat_id):
     try:
