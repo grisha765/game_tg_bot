@@ -80,10 +80,9 @@ def top_command(client, message):
                 username = user.first_name
             else:
                 username = f"user{user_id}"
+            top_message += f"{i}) {username}: {victories}\n"
         except Exception as e:
             continue
-
-        top_message += f"{i}) {username}: {victories}\n"
 
     message.reply_text(top_message, disable_notification=True)
 
