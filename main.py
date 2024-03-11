@@ -203,8 +203,8 @@ def status(client, message):
         status_text += f"{emoji}: {phrase}\n"
     message.reply(status_text)
 
-#игра
-@app.on_message(filters.text & filters.group & filters.create(lambda _, __, m: len(m.text.lower().split()) == 1 and m.text.lower().split()[0] in filter_words))
+#игра #filters.create(lambda _, __, m: len(m.text.lower().split()) == 1 and m.text.lower().split()[0] in filter_words)
+@app.on_message(filters.text & filters.group & filters.command("spin", prefixes="/"))
 async def spin(_, message):
     chat_id = message.chat.id
     data = load_emoji_database(chat_id)
