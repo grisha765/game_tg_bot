@@ -204,7 +204,7 @@ def status(client, message):
     message.reply(status_text)
 
 #игра
-@app.on_message(filters.text & filters.group & filters.regex(re.compile(r"\b(" + "|".join(re.escape(word) for word in filter_words) + r")\b", re.IGNORECASE)))
+@app.on_message(filters.text & filters.group & filters.create(lambda _, __, m: len(m.text.lower().split()) == 1 and m.text.lower().split()[0] in filter_words))
 async def spin(_, message):
     chat_id = message.chat.id
     data = load_emoji_database(chat_id)
