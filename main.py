@@ -1,5 +1,6 @@
 from pyrogram import Client, filters
 from pyrogram.errors import FloodWait
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent
 from argparse import ArgumentParser
 import random
 import time
@@ -8,10 +9,12 @@ import re
 import json
 import unicodedata
 import os
+import tracemalloc
+tracemalloc.start()
 if not os.path.exists("bd"):
     os.makedirs("bd")
 
-parser = ArgumentParser(description='Telegram-бот с аргументом токена и потоками процессора.')
+parser = ArgumentParser(description='Telegram-бот с аргументом токена')
 parser.add_argument('-t', '--token', type=str, help='Токен Telegram-бота')
 args = parser.parse_args()
 if not args.token:
@@ -21,6 +24,7 @@ api_hash = 'b6b154c3707471f5339bd661645ed3d6'
 bot_token = args.token
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
+# спины
 last_command_usage_user = {}
 last_command_usage_group = {}
 active_spins = {}
@@ -30,8 +34,8 @@ filter_words = ["казино", "спин", "казик", "слот", "руле�
 
 #помощь команда /help
 @app.on_message(filters.command("help"))
-def check_help(_, message):
-    message.reply_text("Команды бота:\n/help - помощь.\n/spin - крутить барабан.\n/wins - победы.\n/top - топ победителей.\n/status - посмотреть заданные эмодзи и фразы.\n/set - задать кастомные эмодзи и победные фразы.\nПример: /set 🍒:Вишня. 🍋:Лимон. 🍏:Яблоко. 🍆:Баклажан.\nЭмодзи Telegram Premium не поддерживаются")
+async def check_help(_, message):
+    await message.reply_text("Команды бота:\n/help - помощь.\n/spin - крутить барабан.\n/wins - победы.\n/top - топ победителей.\n/status - посмотреть заданные эмодзи и фразы.\n/set - задать кастомные эмодзи и победные фразы.\nПример: /set 🍒:Вишня. 🍋:Лимон. 🍏:Яблоко. 🍆:Баклажан.\nЭмодзи Telegram Premium не поддерживаются")
 
 def load_wins_database():
     try:
@@ -54,24 +58,24 @@ def update_wins(user_id):
 
 #победы команда /wins
 @app.on_message(filters.command("wins"))
-def check_wins(_, message):
+async def check_wins(_, message):
     user_id = message.from_user.id
     wins_data = load_wins_database()
     if str(user_id) in wins_data:
         wins_count = wins_data[str(user_id)]
-        message.reply_text(f"Ваши победы: {wins_count}")
+        await message.reply_text(f"Ваши победы: {wins_count}")
     else:
-        message.reply_text("У вас пока нет побед.")
+        await message.reply_text("У вас пока нет побед.")
 
 @app.on_message(filters.command("top") & filters.group)
-def top_command(client, message):
+async def top_command(client, message):
     wins_data = load_wins_database()
     sorted_data = sorted(wins_data.items(), key=lambda x: x[1], reverse=True)
     top_message = "Топ победителей:\n"
     top_count = 0
     for i, (user_id, victories) in enumerate(sorted_data, start=1):
         try:
-            user = client.get_users(user_id)
+            user = await client.get_users(user_id)
             if user.username:
                 username = f"{user.username}"
             elif user.first_name and user.last_name:
@@ -85,7 +89,7 @@ def top_command(client, message):
         except Exception as e:
             continue
 
-    message.reply_text(top_message, disable_notification=True)
+    await message.reply_text(top_message, disable_notification=True)
 
 def load_emoji_database(chat_id):
     try:
@@ -118,15 +122,15 @@ def is_emoji(s):
 
 #задать кастомные эмодзи команда /set
 @app.on_message(filters.command("set", prefixes="/") & filters.group)
-def set_emoji(client, message):
+async def set_emoji(client, message):
     chat_id = message.chat.id
     current_time = time.time()
 
     if chat_id in last_command_usage_group and current_time - last_command_usage_group[chat_id] < 900:
         wait_time = int((900 - (current_time - last_command_usage_group[chat_id])) / 60)
-        msg_wait = message.reply_text(f"Пожалуйста, подождите {wait_time} минут перед повторным использованием команды.")
+        msg_wait = await message.reply_text(f"Пожалуйста, подождите {wait_time} минут перед повторным использованием команды.")
         time.sleep(10)
-        msg_wait.delete()
+        await msg_wait.delete()
         return
     last_command_usage_group[chat_id] = current_time
 
@@ -142,19 +146,19 @@ def set_emoji(client, message):
         for item in emojis_with_phrases:
             count_colons += item.count(':')
         if count_colons != 4:
-            msg_error = message.reply("Ошибка: Нужно 4 эмодзи и победных фраз.")
+            msg_error = await message.reply("Ошибка: Нужно 4 эмодзи и победных фраз.")
             del last_command_usage_group[chat_id]
             time.sleep(10)
-            msg_error.delete()
+            await msg_error.delete()
             return
         emoji_set = set()
         for item in emojis_with_phrases:
             emoji, _ = item.split(":")
             if emoji in emoji_set:
-                msg_error = message.reply("Ошибка: Обнаружены повторяющиеся эмодзи.")
+                msg_error = await message.reply("Ошибка: Обнаружены повторяющиеся эмодзи.")
                 del last_command_usage_group[chat_id]
                 time.sleep(10)
-                msg_error.delete()
+                await msg_error.delete()
                 return
             else:
                 emoji_set.add(emoji)
@@ -163,45 +167,45 @@ def set_emoji(client, message):
         for emoji_with_phrase in emojis_with_phrases:
             emoji, phrase = emoji_with_phrase.split(":")
             if len(emoji) > 2:
-                msg_error = message.reply("Ошибка: Допускается вводить только одно эмодзи для каждой победной фразы.")
+                msg_error = await  message.reply("Ошибка: Допускается вводить только одно эмодзи для каждой победной фразы.")
                 del last_command_usage_group[chat_id]
                 time.sleep(10)
-                msg_error.delete()
+                await msg_error.delete()
                 return
             if len(phrase) < 1:
-                msg_error = message.reply("Ошибка: Отсутствуют победные фразы.")
+                msg_error = await message.reply("Ошибка: Отсутствуют победные фразы.")
                 del last_command_usage_group[chat_id]
                 time.sleep(10)
-                msg_error.delete()
+                await msg_error.delete()
                 return
             if is_emoji(emoji):
                 new_emojis.append(emoji)
                 new_phrases.append(phrase)
             else:
-                msg_error = message.reply("Ошибка: Недопустимый символ эмодзи.")
+                msg_error = await message.reply("Ошибка: Недопустимый символ эмодзи.")
                 del last_command_usage_group[chat_id]
                 time.sleep(10)
-                msg_error.delete()
+                await msg_error.delete()
                 return
         data["emoji"] = new_emojis
         data["phrases"] = new_phrases
         save_emoji_database(data, chat_id)
-        message.reply("Новые эмодзи и победные фразы установлены успешно!")
+        await message.reply("Новые эмодзи и победные фразы установлены успешно!")
     else:
-        msg_error = message.reply("Неверный формат команды. Используйте: /set Эмодзи1:Фраза1. Эмодзи2:Фраза2. Эмодзи3:Фраза3. Эмодзи4:Фраза4.")
+        msg_error = await message.reply("Неверный формат команды. Используйте: /set Эмодзи1:Фраза1. Эмодзи2:Фраза2. Эмодзи3:Фраза3. Эмодзи4:Фраза4.")
         del last_command_usage_group[chat_id]
         time.sleep(10)
-        msg_error.delete()
+        await msg_error.delete()
 
 #посмотреть эмодзи группы команда /status
 @app.on_message(filters.command("status", prefixes="/") & filters.group)
-def status(client, message):
+async def status(client, message):
     chat_id = message.chat.id
     data = load_emoji_database(chat_id)
     status_text = "Заданные эмодзи и фразы в этой группе:\n"
     for emoji, phrase in zip(data["emoji"], data["phrases"]):
         status_text += f"{emoji}: {phrase}\n"
-    message.reply(status_text)
+    await message.reply(status_text)
 
 #игра #filters.create(lambda _, __, m: len(m.text.lower().split()) == 1 and m.text.lower().split()[0] in filter_words)
 @app.on_message(filters.text & filters.group & filters.command("spin", prefixes="/"))
@@ -291,5 +295,170 @@ async def spin(_, message):
     else:
         await asyncio.sleep(0.5) #проигрыш
         await msg.edit_text("🎰 "+' - '.join(result)+" 🎰"+"\n"+'Увы, вы проиграли. Попробуйте ещё раз!')
+
+# Дуэли
+player1 = {}
+player2 = {}
+
+def load_players_hp_database(filename):
+    try:
+        with open(os.path.join(filename), 'r') as file:
+            data = json.load(file)
+            return {int(key): int(value) for key, value in data.items()}
+    except FileNotFoundError:
+        return {}
+
+def save_players_hp_database(filename, data):
+    with open(os.path.join(filename), 'w') as file:
+        json.dump(data, file, separators=(',', ':'))
+
+def update_players_hp_database(filename, user_id, player_hp):
+    hp_data = load_players_hp_database(filename)
+    hp_data[user_id] = player_hp
+    save_players_hp_database(filename, hp_data)
+hp_file = 'bd/players_hp.json'
+players_hp = load_players_hp_database(hp_file)
+
+accepted_challenges = {}
+active_players = {}
+# Обработчик команды /start
+@app.on_message(filters.command(["start"]))
+async def start_command(client, message):
+    chat_id = message.chat.id
+    message_id = message.id
+    user = message.from_user #тот кто написал /start
+    replied_user = message.reply_to_message.from_user #тот кому ответили
+
+    player1[message_id] = replied_user.id
+    player2[message_id] = user.id
+
+    if player1 == player2:
+        msg_error = await client.send_message(
+            chat_id=chat_id,
+            text=f"Ошибка: Нельзя вызвать на поединок самого себя.",
+            reply_to_message_id=message.id
+        )
+        await asyncio.sleep(10)
+        await msg_error.delete()
+        return
+    if active_players.get(player1.get(message_id)) or active_players.get(player2.get(message_id)):
+        msg_error = await client.send_message(
+            chat_id=chat_id,
+            text=f"Ошибка: Поединок уже идёт.",
+            reply_to_message_id=message.id
+        )
+        await asyncio.sleep(10)
+        await msg_error.delete()
+        return
+
+    active_players[player1.get(message_id)] = True
+    active_players[player2.get(message_id)] = True
+
+    if player1[message_id] not in players_hp:
+        players_hp[player1[message_id]] = 100
+    if player2[message_id] not in players_hp:
+        players_hp[player2[message_id]] = 100
+
+    player1_getuser = await app.get_users(player1.get(message_id))
+    player2_getuser = await app.get_users(player2.get(message_id))
+
+    reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("Принять вызов!", callback_data="start")]])
+    msg = await client.send_message(
+        chat_id=chat_id,
+        text=f"Вы вызвали @{player1_getuser.username} на поединок!\nОппоненту нужно принять вызов в течении 10 секунд иначе он будет отклонен.",
+        reply_to_message_id=message.id,
+        reply_markup=reply_markup
+    )
+
+    await asyncio.sleep(10)
+    if accepted_challenges.get(message_id) == True:
+        pass
+    else:
+        await msg.delete()
+        active_players.clear()
+# Обработчик нажатия кнопки "Принять вызов!"
+@app.on_callback_query(filters.regex("start"))
+async def attack_callback(client, callback_query):
+    user_id = callback_query.from_user.id
+    chat_id = callback_query.message.chat.id
+    message_id = callback_query.message.id
+
+    Player1 = player1.get(message_id - 1)
+    Player2 = player2.get(message_id - 1)
+    Player1_hp = players_hp.get(Player1)
+    Player2_hp = players_hp.get(Player2)
+
+    player1_getuser = await app.get_users(player1.get(message_id - 1))
+    player2_getuser = await app.get_users(player2.get(message_id - 1))
+
+    if user_id == Player1:
+        accepted_challenges[message_id - 1] = True
+        await client.edit_message_reply_markup(
+            chat_id=chat_id,
+            message_id=message_id,
+            reply_markup=None
+        )
+
+        reply_markup = InlineKeyboardMarkup([
+            [InlineKeyboardButton(f"Атаковать пользователя {player2_getuser.username or player2_getuser.first_name}...", callback_data="attack")]
+        ])
+        await client.edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
+            text=f"{player1_getuser.username or player1_getuser.first_name} (HP: {Player1_hp}) ⚔️ {player2_getuser.username or player2_getuser.first_name} (HP: {Player2_hp})\nПользователь {player1_getuser.username or player1_getuser.first_name} принял вызов пользователя {player2_getuser.username or player2_getuser.first_name}",
+            reply_markup=reply_markup
+        )
+
+    else:
+        await callback_query.answer(text=f"Это только для {player1_getuser.username or player1_getuser.first_name}.")
+
+    await callback_query.answer()
+
+@app.on_callback_query(filters.regex("attack"))
+async def battle_callback(client, callback_query):
+    chat_id = callback_query.message.chat.id
+    message_id = callback_query.message.id
+    user_id = callback_query.from_user.id
+
+    attacking_player = player1.get(message_id - 1)
+    defending_player = player2.get(message_id - 1)
+    attacking_player_hp = players_hp.get(attacking_player)
+    defending_player_hp = players_hp.get(defending_player)
+
+    attacking_getuser = await app.get_users(attacking_player)
+    defending_getuser = await app.get_users(defending_player)
+
+    if user_id == attacking_player:
+        damage = random.randint(1, 20)
+        #damage = 50
+        defending_player_hp -= damage
+        print("Attack:", attacking_getuser.username or attacking_getuser.first_name, "HP:", attacking_player_hp,"\nDefending:", defending_getuser.username or defending_getuser.first_name, "HP:", defending_player_hp)
+        reply_markup = InlineKeyboardMarkup([
+            [InlineKeyboardButton(f"Атаковать пользователя {attacking_getuser.username or attacking_getuser.first_name}...", callback_data="attack")]
+        ])
+        await client.edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
+            text=f"🗡: {attacking_getuser.username or attacking_getuser.first_name} (HP: {attacking_player_hp}) ⚔️ {defending_getuser.username or defending_getuser.first_name} (HP: {defending_player_hp}) :🛡\nПользователь {attacking_getuser.username or attacking_getuser.first_name} атакует пользователя {defending_getuser.username or defending_getuser.first_name} и наносит {damage} урона.",
+            reply_markup=reply_markup
+        )
+        player1[message_id - 1] = defending_player
+        player2[message_id - 1] = attacking_player
+        players_hp[player1[message_id - 1]] = defending_player_hp
+        players_hp[player2[message_id - 1]] = attacking_player_hp
+    else:
+        await callback_query.answer(text=f"Это только для {attacking_getuser.username or attacking_getuser.first_name}.")
+    if defending_player_hp <= 0:
+        await client.edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
+            text=f"Пользователь @{attacking_getuser.username or attacking_getuser.first_name} побеждает пользователя @{defending_getuser.username or defending_getuser.first_name}."
+        )
+        del accepted_challenges[message_id - 1]
+        active_players.clear()
+        update_players_hp_database(hp_file, attacking_player, attacking_player_hp)
+        update_players_hp_database(hp_file, defending_player, defending_player_hp)
+
+    await callback_query.answer()
 
 app.run()
