@@ -11,7 +11,7 @@ This Python script is a Telegram bot that simulates a slot machine game. It allo
 git clone https://github.com/grisha765/casino_tg_bot.git
 cd casino_tg_bot
 python3 -m venv venv
-venv/bin/pip3 install pyrogram tgcrypto aiohttp
+venv/bin/pip3 install pyrofork tgcrypto aiohttp
 ```
 
 ### Run Bot
