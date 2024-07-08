@@ -30,6 +30,5 @@ async def top_command(client, message):
 
     await message.reply_text(top_message, disable_notification=True)
 
-
 if __name__ == "__main__":
     raise RuntimeError("This module should be run only via main.py")
