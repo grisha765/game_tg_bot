@@ -1,0 +1,14 @@
+aiosqlite==0.17.0
+annotated-types==0.7.0
+iso8601==1.1.0
+pyaes==1.6.1
+pydantic==2.8.2
+pydantic_core==2.20.1
+pymediainfo-pyrofork==6.0.1
+pypika-tortoise==0.1.6
+pyrofork==2.3.32
+PySocks==1.7.1
+pytz==2024.1
+TgCrypto==1.2.5
+tortoise-orm==0.21.4
+typing_extensions==4.12.2
