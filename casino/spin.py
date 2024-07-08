@@ -8,8 +8,6 @@ from core.vars import active_spins
 from config import logging_config
 logging = logging_config.setup_logging(__name__)
 
-last_command_usage_group = {}
-
 async def spin_func(message):
     chat_id = message.chat.id
     data = {"emoji": ['🍒', '🍋', '🍏', '🍆'], "phrases": ['Вишня! Поздравляю!', 'Лови лимон!', 'Яблоко база.', 'БАКЛАЖАН! У вас ДЖЕКПОТ! Вставьте его поглубже...']}
@@ -76,9 +74,6 @@ async def spin_func(message):
     else:
         await asyncio.sleep(0.5)
         await msg.edit_text(f"🎰 {' - '.join(result)} 🎰\nУвы, вы проиграли. Попробуйте ещё раз!")
-        log_point = await add_points(user_id, 1)
-        logging.debug(log_point)
-        logging.debug(f"{user_id}: Points - {await get_points(user_id)}")
 
 if __name__ == "__main__":
     raise RuntimeError("This module should be run only via main.py")
