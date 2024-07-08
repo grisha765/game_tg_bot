@@ -5,7 +5,7 @@ async def add_points(user_id: int, point: int):
     if not created:
         win_record.point += point
         await win_record.save()
-    return f"user {user_id} has been credited with {point} points."
+    return {"status": "success", "data": f"user {user_id} has been credited with {point} points."}
 
 async def get_points(user_id: int):
     win_record = await Wins.get_or_none(user_id=user_id)
