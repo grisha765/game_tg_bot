@@ -1,0 +1,3 @@
+{
+  "help": "Bot commands:\n/help - help.\n/spin - spin the reel.\n/wins - victories.\n/top - top winners.\n/status - view specified emojis and phrases.\n/set - set custom emoji and winning phrases.\nExample: /set 🍒:Cherry 🍋:Lemon 🍏:Apple 🍆:Eggplant.\nTelegram Premium emojis are not supported"
+}
