@@ -1,3 +1,18 @@
 {
-  "help": "Bot commands:\n/help - help.\n/spin - spin the reel.\n/wins - victories.\n/top - top winners.\n/status - view specified emojis and phrases.\n/set - set custom emoji and winning phrases.\nExample: /set 🍒:Cherry 🍋:Lemon 🍏:Apple 🍆:Eggplant.\nTelegram Premium emojis are not supported"
+  "help": "Bot commands:\n/help - help.\n/spin - spin the wheel.\n/wins - wins.\n/top - top winners.\n/get - view set emojis and phrases.\n/set - set custom emojis and winning phrases.\nExample: /set 🍒:Cherry. 🍋:Lemon. 🍏:Apple. 🍆:Eggplant.\nTelegram Premium emojis are not supported.",
+  "active_spin": "You are already spinning the wheel. Please wait for the current spin to finish.",
+  "antispam": "Please wait",
+  "antispam_sec": "seconds before spinning again.",
+  "antispam_min": "minutes before reusing the command.",
+  "start_spin": "Spinning the wheels...",
+  "floodwait_spin": "The machine jammed! Try again!",
+  "loss_spin": "Unfortunately, you lost. Try again!",
+  "check_wins": "Your wins:",
+  "check_top": "Top winners:\n",
+  "none_chatname": "this chat",
+  "invalid_set_format": "Invalid format! Use exactly 4 pairs of emojis and phrases (end each pair with a period) in the format: /set 🍒:Cherry. 🍋:Lemon. 🍏:Apple. 🍆:Eggplant.",
+  "successful_set": "Set of emojis and phrases in",
+  "successful_set2": "successfully installed.",
+  "response_get": "Emojis for"
 }
+
