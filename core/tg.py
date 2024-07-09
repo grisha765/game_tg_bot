@@ -16,25 +16,25 @@ async def hanlde_help(_, message):
     text = get_translation(user_language, "help")
     await message.reply_text(text)
 
-@app.on_message(filters.text & filters.command("spin", prefixes="/"))
+@app.on_message(filters.text & filters.command("spin", prefixes="/") & filters.group)
 async def handle_spin(_, message):
-    await spin_func(message)
+    await spin_func(message, get_translation)
 
 @app.on_message(filters.text & filters.command("wins", prefixes="/"))
 async def handle_wins(_, message):
-    await check_wins(message)
+    await check_wins(message, get_translation)
 
-@app.on_message(filters.text & filters.command("top", prefixes="/"))
+@app.on_message(filters.text & filters.command("top", prefixes="/") & filters.group)
 async def handle_top(client, message):
-    await top_command(client, message)
+    await top_command(client, message, get_translation)
 
-@app.on_message(filters.text & filters.command("set", prefixes="/"))
+@app.on_message(filters.text & filters.command("set", prefixes="/") & filters.group)
 async def handle_set(_, message):
-    await set_emoji_command(message)
+    await set_emoji_command(message, get_translation)
 
-@app.on_message(filters.text & filters.command("get", prefixes="/"))
+@app.on_message(filters.text & filters.command("get", prefixes="/") & filters.group)
 async def handle_get(_, message):
-    await get_emoji_command(message)
+    await get_emoji_command(message, get_translation)
 
 async def start_bot():
     logging.info("Launching the bot...")
