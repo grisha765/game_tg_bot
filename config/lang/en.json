@@ -11,8 +11,9 @@
   "check_top": "Top winners:\n",
   "none_chatname": "this chat",
   "invalid_set_format": "Invalid format! Use exactly 4 pairs of emojis and phrases (end each pair with a period) in the format: /set 🍒:Cherry. 🍋:Lemon. 🍏:Apple. 🍆:Eggplant.",
-  "successful_set": "Set of emojis and phrases in",
-  "successful_set2": "successfully installed.",
+  "successful_base": "Emojis and phrases in",
+  "successful_set": "successfully installed.",
+  "successful_del": "successfully deleted.",
   "response_get": "Emojis for"
 }
 
