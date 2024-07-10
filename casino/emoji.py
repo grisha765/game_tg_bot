@@ -1,5 +1,5 @@
 import re, asyncio
-from db.emoji import add_emoji, get_emoji
+from db.emoji import add_emoji, get_emoji, del_emoji
 from casino.antispam import antispam_group
 
 from config import logging_config
@@ -47,7 +47,7 @@ async def set_emoji_command(message, get_translation):
         response = await add_emoji(chat_id, emoji, phrase)
         responses.append(response["data"])
 
-    await message.reply(f"{get_translation(user_language, 'successful_set')} {chat_name} {get_translation(user_language, 'successful_set2')}")
+    await message.reply(f"{get_translation(user_language, 'successful_base')} {chat_name} {get_translation(user_language, 'successful_set')}")
 
 async def get_emoji_command(message, get_translation):
     user_language = message.from_user.language_code
@@ -60,6 +60,15 @@ async def get_emoji_command(message, get_translation):
     response_message = f"{get_translation(user_language, "response_get")} {chat_name}:\n" + "\n".join(emoji_phrase_pairs)
 
     await message.reply(response_message)
+
+async def del_emoji_command(message, get_translation):
+    user_language = message.from_user.language_code
+    chat_id = message.chat.id
+    chat_name = message.chat.title or get_translation(user_language, "none_chatname")
+    await del_emoji(chat_id)
+
+    await message.reply(f"{get_translation(user_language, 'successful_base')} {chat_name} {get_translation(user_language, 'successful_del')}")
+
 
 if __name__ == "__main__":
     raise RuntimeError("This module should be run only via main.py")
