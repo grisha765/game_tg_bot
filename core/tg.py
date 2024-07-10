@@ -2,7 +2,7 @@ from pyrogram import Client, filters
 from config.config import Config
 from casino.spin import spin_func
 from casino.point import check_wins, top_command
-from casino.emoji import set_emoji_command, get_emoji_command
+from casino.emoji import set_emoji_command, get_emoji_command, del_emoji_command
 from core.trans import get_translation
 from config import logging_config
 logging = logging_config.setup_logging(__name__)
@@ -35,6 +35,10 @@ async def handle_set(_, message):
 @app.on_message(filters.text & filters.command("get", prefixes="/") & filters.group)
 async def handle_get(_, message):
     await get_emoji_command(message, get_translation)
+
+@app.on_message(filters.text & filters.command("del", prefixes="/") & filters.group)
+async def handle_del(_, message):
+    await del_emoji_command(message, get_translation)
 
 async def start_bot():
     logging.info("Launching the bot...")
