@@ -5,8 +5,8 @@ from casino.spin import spin_func
 from casino.point import check_wins, top_command
 from casino.emoji import set_emoji_command, get_emoji_command, del_emoji_command
 from core.trans import get_translation
-from chesse.invite import chess_start, join_black, remove_expired_session
-from chesse.game import move
+from chesse.invite import chess_start, join_chess_black, remove_expired_chess_session
+from chesse.game import move_chess
 from config import logging_config
 logging = logging_config.setup_logging(__name__)
 
@@ -48,7 +48,7 @@ selected_squares = {}
 available_session_ids = []
 
 @app.on_message(filters.text & filters.command("chess", prefixes="/") & filters.group)
-async def handle_start(client, message):
+async def handle_chess_start(client, message):
     if available_session_ids:
         session_id = available_session_ids.pop(0)
     else:
@@ -62,18 +62,18 @@ async def handle_start(client, message):
     selected_squares[session_id] = None
     sessions[session_id]["white"]["id"], sessions[session_id]["white"]["name"], message_id = await chess_start(session_id, sessions, message)
     sessions[session_id]["message_id"] = message_id
-    asyncio.create_task(remove_expired_session(session_id, sessions, selected_squares, available_session_ids, client))
+    asyncio.create_task(remove_expired_chess_session(session_id, sessions, selected_squares, available_session_ids, client))
 
 @app.on_callback_query(filters.regex(r"join_black_(\d+)"))
-async def handle_join(client, callback_query):
+async def handle_chess_join(client, callback_query):
     session_id = int(callback_query.data.split('_')[-1])
-    await join_black(session_id, sessions, client, callback_query)
+    await join_chess_black(session_id, sessions, client, callback_query)
 
 @app.on_callback_query(filters.regex(r"^(\d+)_([a-h][1-8])$"))
 async def handle_chess_move(client, callback_query):
     session_id, position = callback_query.data.split('_')
     session_id = int(session_id)
-    selected_squares[session_id] = await move(client, callback_query, sessions[session_id], selected_squares[session_id])
+    selected_squares[session_id] = await move_chess(client, callback_query, sessions[session_id], selected_squares[session_id])
 
 async def start_bot():
     logging.info("Launching the bot...")
