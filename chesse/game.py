@@ -3,7 +3,7 @@ from chesse.board import boards, send_chessboard
 from config import logging_config
 logging = logging_config.setup_logging(__name__)
 
-async def move(client, callback_query, session, selected_square):
+async def move_chess(client, callback_query, session, selected_square):
     user_id = callback_query.from_user.id
     session_id, position = callback_query.data.split('_')
     session_id = int(session_id)

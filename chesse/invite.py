@@ -16,7 +16,7 @@ async def chess_start(session_id, sessions, message):
     msg = await message.reply_text(f"Шахматная доска: {session_id}\nБелые: @{sessions[session_id]['white']['name']}\nОжидание игрока за черных.", reply_markup=reply_markup)
     return sessions[session_id]["white"]["id"], sessions[session_id]["white"]["name"], msg.id
 
-async def join_black(session_id, sessions, client, callback_query):
+async def join_chess_black(session_id, sessions, client, callback_query):
     user = callback_query.from_user
     logging.debug(f"Join game: {user.username}")
     if user.id == sessions[session_id]["white"]["id"]:
@@ -29,7 +29,7 @@ async def join_black(session_id, sessions, client, callback_query):
     else:
         await callback_query.answer("Игра уже началась.")
 
-async def remove_expired_session(session_id, sessions, selected_squares, available_session_ids, client):
+async def remove_expired_chess_session(session_id, sessions, selected_squares, available_session_ids, client):
     await asyncio.sleep(300)
     if not sessions[session_id]["black"]["id"]:
         chat_id = sessions[session_id]["chat_id"]
