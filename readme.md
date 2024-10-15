@@ -36,7 +36,8 @@ python3 -m venv .venv
     ```bash
     podman pull ghcr.io/grisha765/game_tg_bot:latest
     mkdir -p $HOME/database/ && \
-    podman run --rm \
+    podman run \
+    --name game_tg_bot \
     -v $HOME/database/:/app/database/:z \
     -e TG_TOKEN="your_telegram_bot_token" \
     ghcr.io/grisha765/game_tg_bot:latest
