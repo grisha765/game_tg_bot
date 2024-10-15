@@ -34,12 +34,12 @@ python3 -m venv .venv
 
 - Deploy in podman\docker:
     ```bash
-    podman build -t game_tg_bot:latest -f dockerfile . && \
+    podman pull ghcr.io/grisha765/game_tg_bot:latest
     mkdir -p $HOME/database/ && \
     podman run --rm \
     -v $HOME/database/:/app/database/:z \
     -e TG_TOKEN="your_telegram_bot_token" \
-    game_tg_bot:latest
+    ghcr.io/grisha765/game_tg_bot:latest
     ```
 
 ## Features
