@@ -31,6 +31,7 @@
   "complete": "Game is over",
   "draw": "draw",
   "unavailable": "Only the game creator can select the board size.",
-  "select_size": "You have selected the board size"
+  "select_size": "You have selected the board size",
+  "size_already_selected": "You have already selected this board size"
 }
 
