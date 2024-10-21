@@ -29,6 +29,8 @@
   "occupied": "Cell is already occupied!",
   "win": "wins",
   "complete": "Game is over",
-  "draw": "draw"
+  "draw": "draw",
+  "unavailable": "Only the game creator can select the board size.",
+  "select_size": "You have selected the board size"
 }
 
