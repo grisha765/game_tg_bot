@@ -30,8 +30,12 @@
   "win": "wins",
   "complete": "Game is over",
   "draw": "draw",
-  "unavailable": "Only the game creator can select the board size.",
+  "unavailable": "Only the session creator can select the game parameters.",
   "select_size": "You have selected the board size",
-  "size_already_selected": "You have already selected this board size"
+  "size_already_selected": "You have already selected this board size",
+  "mode_already_selected": "This game mode is already selected.",
+  "select_mode": "You have selected the game mode",
+  "mode_0": "Standard",
+  "mode_1": "Recursive"
 }
 
