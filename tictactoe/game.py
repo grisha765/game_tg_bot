@@ -12,18 +12,28 @@ async def clear_ttt_session(session_id, sessions, selected_squares, available_se
     available_session_ids.append(session_id)
     logging.debug(f"Session {session_id} expired and was removed.")
 
-def check_winner(board):
-    winning_combinations = [
-        [0, 1, 2], [3, 4, 5], [6, 7, 8],  # Строки
-        [0, 3, 6], [1, 4, 7], [2, 5, 8],  # Столбцы
-        [0, 4, 8], [2, 4, 6]              # Диагонали
-    ]
-    
+def check_winner(board, board_size=3):
+    winning_combinations = []
+
+    for i in range(board_size):
+        winning_combinations.append([i * board_size + j for j in range(board_size)])
+
+    for i in range(board_size):
+        winning_combinations.append([i + j * board_size for j in range(board_size)])
+
+    winning_combinations.append([i * (board_size + 1) for i in range(board_size)])
+
+    winning_combinations.append([i * (board_size - 1) for i in range(1, board_size + 1)])
+
+    logging.debug(f"Winning combinations for {board_size}x{board_size}: {winning_combinations}")
+
     for combo in winning_combinations:
-        if board[combo[0]] == board[combo[1]] == board[combo[2]] and board[combo[0]] != " ":
+        if all(board[pos] == board[combo[0]] and board[pos] != " " for pos in combo):
             return board[combo[0]]
+
     if all(cell != " " for cell in board):
         return "draw"
+
     return None
 
 async def move_ttt(client, callback_query, session, position: int, session_id: int, sessions, selected_squares, available_session_ids, get_translation):
@@ -43,8 +53,10 @@ async def move_ttt(client, callback_query, session, position: int, session_id: i
         return
     
     board = board_states[session_id]
-    winner = check_winner(board)
+    board_size = session.get("board_size", 3)
+    winner = check_winner(board, board_size=board_size)
     logging.debug(f"Session {session_id}: Check winner: {winner}")
+    
     if winner == "X":
         winner_name = session["x"]["name"]
         await client.edit_message_text(
@@ -75,6 +87,7 @@ async def move_ttt(client, callback_query, session, position: int, session_id: i
         session["next_move"] = "O" if player_symbol == "X" else "X"
         next_player = "🔴" if session["next_move"] == "O" else "❌"
         await send_ttt_board(session_id, client, session["message_id"], session["chat_id"], next_player, session, get_translation)
+
 
 if __name__ == "__main__":
     raise RuntimeError("This module should be run only via main.py")
