@@ -87,6 +87,9 @@ async def handle_ttt_start(client, message):
     sessions[session_id] = {
         "x": {"id": None, "name": None},
         "o": {"id": None, "name": None},
+        "x_points": 0,
+        "o_points": 0,
+        "combos": [],
         "message_id": None,
         "chat_id": message.chat.id,
         "board_size": 3,
@@ -138,6 +141,14 @@ async def handle_game_mode_selection(client, callback_query):
     await update_buttons(client, session_id, sessions[session_id], callback_query.message, sessions[session_id]["board_size"], mode, get_translation)
     await callback_query.answer(f"{get_translation(sessions[session_id]["lang"], "select_mode")}: {get_translation(sessions[session_id]["lang"], f"mode_{mode}").lower()}")
 
+def save_points(session_id, x_points=None, o_points=None, combos=None):
+    if x_points != None:
+        sessions[session_id]["x_points"] = x_points
+    if o_points != None:
+        sessions[session_id]["o_points"] = o_points
+    if combos != None:
+        sessions[session_id]["combos"].extend(combos)
+
 @app.on_callback_query(filters.regex(r"join_o_(\d+)"))
 async def handle_ttt_join(client, callback_query):
     session_id = int(callback_query.data.split('_')[-1])
@@ -147,7 +158,7 @@ async def handle_ttt_join(client, callback_query):
 async def handle_ttt_move(client, callback_query):
     session_id, position = callback_query.data.split('_')
     session_id = int(session_id)
-    await move_ttt(client, callback_query, sessions[session_id], int(position), session_id, sessions, selected_squares, available_session_ids, get_translation)
+    await move_ttt(client, callback_query, sessions[session_id], int(position), session_id, sessions, selected_squares, available_session_ids, get_translation, save_points)
 
 async def start_bot():
     logging.info("Launching the bot...")
