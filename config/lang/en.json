@@ -14,6 +14,21 @@
   "successful_base": "Emojis and phrases in",
   "successful_set": "successfully installed.",
   "successful_del": "successfully deleted.",
-  "response_get": "Emojis for"
+  "response_get": "Emojis for",
+  "join": "Join for noughts!",
+  "session_id": "Game Board",
+  "x": "Crosses",
+  "o": "Noughts",
+  "wait": "Waiting for the player for noughts.",
+  "incorrect_join0": "You cannot join the game as ",
+  "incorrect_join1": " if you are already playing as ",
+  "start_game": "The game is starting.",
+  "game_started": "The game has already started.",
+  "x_turn": "It's crosses' turn now!",
+  "o_turn": "It's noughts' turn now!",
+  "occupied": "Cell is already occupied!",
+  "win": "wins",
+  "complete": "Game is over",
+  "draw": "draw"
 }
 
