@@ -14,6 +14,10 @@ async def update_board_size_buttons(client, session_id, session, message, select
         InlineKeyboardButton(
             f"{'>>' if selected_size == 5 else ''}5x5{'<<' if selected_size == 5 else ''}", 
             callback_data=f"board_size_5_{session_id}"
+        ),
+        InlineKeyboardButton(
+            f"{'>>' if selected_size == 7 else ''}7x7{'<<' if selected_size == 7 else ''}", 
+            callback_data=f"board_size_7_{session_id}"
         )
     ]
 
@@ -36,7 +40,8 @@ async def ttt_start(session_id, sessions, message, get_translation):
     
     board_size_buttons = [
         InlineKeyboardButton(">>3x3<<", callback_data=f"board_size_3_{session_id}"),
-        InlineKeyboardButton("5x5", callback_data=f"board_size_5_{session_id}")
+        InlineKeyboardButton("5x5", callback_data=f"board_size_5_{session_id}"),
+        InlineKeyboardButton("7x7", callback_data=f"board_size_7_{session_id}")
     ]
     
     join_button = InlineKeyboardButton(get_translation(sessions[session_id]["lang"], "join"), callback_data=f"join_o_{session_id}")
