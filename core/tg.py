@@ -110,7 +110,7 @@ async def handle_board_size_selection(client, callback_query):
     sessions[session_id]["board_size"] = size
 
     await update_board_size_buttons(client, session_id, sessions[session_id], callback_query.message, size, get_translation)
-    await callback_query.answer(f"{get_translation(sessions[session_id]["lang"], "unavailable")} {size}x{size}")
+    await callback_query.answer(f"{get_translation(sessions[session_id]["lang"], "select_size")} {size}x{size}")
 
 @app.on_callback_query(filters.regex(r"join_o_(\d+)"))
 async def handle_ttt_join(client, callback_query):
