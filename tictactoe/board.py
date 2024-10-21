@@ -5,7 +5,7 @@ board_states = {}
 def initialize_ttt_board(session_id):
     board_states[session_id] = [" " for _ in range(9)]
 
-async def send_ttt_board(session_id, client, message_id, chat_id, current_player, session):
+async def send_ttt_board(session_id, client, message_id, chat_id, current_player, session, get_translation):
     board = board_states[session_id]
     buttons = []
     for i in range(9):
@@ -17,7 +17,7 @@ async def send_ttt_board(session_id, client, message_id, chat_id, current_player
     await client.edit_message_text(
         chat_id=chat_id,
         message_id=message_id,
-        text=f"Крестики: {x_player}\nНолики: {o_player}\n\n",
+        text=f"{get_translation(session["lang"], "x")}: {x_player}\n{get_translation(session["lang"], "o")}: {o_player}\n\n",
         reply_markup=keyboard
     )
 
