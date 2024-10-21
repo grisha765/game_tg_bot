@@ -18,11 +18,17 @@ async def send_ttt_board(session_id, client, message_id, chat_id, current_player
     
     x_player = f"@{session['x']['name']}" + (" <==" if current_player == "❌" else "")
     o_player = f"@{session['o']['name']}" + (" <==" if current_player == "🔴" else "")
+
+    x_points = session["x_points"] if session["game_mode"] == 2 else ""
+    o_points = session["o_points"] if session["game_mode"] == 2 else ""
+
+    x_display = f"{get_translation(session['lang'], 'x')} - {x_points}: {x_player}" if session["game_mode"] == 2 else f"{get_translation(session['lang'], 'x')}: {x_player}"
+    o_display = f"{get_translation(session['lang'], 'o')} - {o_points}: {o_player}" if session["game_mode"] == 2 else f"{get_translation(session['lang'], 'o')}: {o_player}"
     
     await client.edit_message_text(
         chat_id=chat_id,
         message_id=message_id,
-        text=f"{get_translation(session['lang'], 'x')}: {x_player}\n{get_translation(session['lang'], 'o')}: {o_player}\n\n",
+        text=f"{x_display}\n{o_display}\n\n",
         reply_markup=keyboard
     )
 
