@@ -1,4 +1,7 @@
-def check_winner(board, board_size=3, game_mode=0):
+from config import logging_config
+logging = logging_config.setup_logging(__name__)
+
+def check_winner(board, board_size, game_mode, session_id, x_points, o_points, save_points, combos):
     if board_size == 3:
         win_length = 3
     elif board_size in [5, 7]:
@@ -6,7 +9,13 @@ def check_winner(board, board_size=3, game_mode=0):
     else:
         win_length = board_size
 
-    if game_mode == 0:
+    def check_combinations(combinations):
+        for combo in combinations:
+            if all(board[pos] == board[combo[0]] and board[pos] != " " for pos in combo):
+                return board[combo[0]]
+        return None
+
+    if game_mode == 0 or game_mode == 2:
         winning_combinations = []
 
         for i in range(board_size):
@@ -25,11 +34,12 @@ def check_winner(board, board_size=3, game_mode=0):
             for j in range(win_length - 1, board_size):
                 winning_combinations.append([((i + k) * board_size + (j - k)) for k in range(win_length)])
 
-        for combo in winning_combinations:
-            if all(board[pos] == board[combo[0]] and board[pos] != " " for pos in combo):
-                return board[combo[0]]
+        if game_mode == 0 or game_mode == 2:
+            winner = check_combinations(winning_combinations)
+            if winner:
+                return winner
 
-    elif game_mode == 1:
+    if game_mode == 1:
         def is_valid(x, y):
             return 0 <= x < board_size and 0 <= y < board_size
 
@@ -51,7 +61,52 @@ def check_winner(board, board_size=3, game_mode=0):
                     if check_recursive(i, j, symbol, {(i, j)}):
                         return symbol
 
-    if all(cell != " " for cell in board):
-        return "draw"
+    if game_mode == 0 or game_mode == 1:
+        if all(cell != " " for cell in board):
+            return "draw"
+
+    if game_mode == 2:
+        point_combinations = []
+        scored_combinations = combos
+
+        for i in range(board_size):
+            for j in range(board_size - 3 + 1):
+                point_combinations.append([i * board_size + k for k in range(j, j + 3)])
+
+        for i in range(board_size):
+            for j in range(board_size - 3 + 1):
+                point_combinations.append([k * board_size + i for k in range(j, j + 3)])
+
+        for i in range(board_size - 3 + 1):
+            for j in range(board_size - 3 + 1):
+                point_combinations.append([((i + k) * board_size + (j + k)) for k in range(3)])
+
+        for i in range(board_size - 3 + 1):
+            for j in range(3 - 1, board_size):
+                point_combinations.append([((i + k) * board_size + (j - k)) for k in range(3)])
+
+        for combo in point_combinations:
+            if combo in scored_combinations:
+                continue
+
+            if all(board[pos] == 'X' for pos in combo):
+                x_points += 1
+                save_points(session_id, x_points=x_points, combos=[combo]) 
+                logging.debug(f"Session {session_id}: Add x_point: {x_points}")
+            elif all(board[pos] == 'O' for pos in combo):
+                o_points += 1
+                save_points(session_id, o_points=o_points, combos=[combo])
+                logging.debug(f"Session {session_id}: Add o_points: {o_points}")
+
+        if all(cell != " " for cell in board):
+            if x_points > o_points:
+                return "X wins by points"
+            elif o_points > x_points:
+                return "O wins by points"
+            else:
+                return "draw"
 
     return None
+
+if __name__ == "__main__":
+    raise RuntimeError("This module should be run only via main.py")
