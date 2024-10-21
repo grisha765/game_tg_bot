@@ -87,23 +87,24 @@ async def handle_ttt_start(client, message):
         "x": {"id": None, "name": None},
         "o": {"id": None, "name": None},
         "message_id": None,
-        "chat_id": message.chat.id
+        "chat_id": message.chat.id,
+        "lang": message.from_user.language_code
     }
     selected_squares[session_id] = None
-    sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], message_id = await ttt_start(session_id, sessions, message)
+    sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], message_id = await ttt_start(session_id, sessions, message, get_translation)
     sessions[session_id]["message_id"] = message_id
     asyncio.create_task(remove_expired_ttt_session(session_id, sessions, selected_squares, available_session_ids, client))
 
 @app.on_callback_query(filters.regex(r"join_o_(\d+)"))
 async def handle_ttt_join(client, callback_query):
     session_id = int(callback_query.data.split('_')[-1])
-    await join_ttt_o(session_id, sessions, client, callback_query)
+    await join_ttt_o(session_id, sessions, client, callback_query, get_translation)
 
 @app.on_callback_query(filters.regex(r"^(\d+)_(\d+)$"))
 async def handle_ttt_move(client, callback_query):
     session_id, position = callback_query.data.split('_')
     session_id = int(session_id)
-    await move_ttt(client, callback_query, sessions[session_id], int(position), session_id, sessions, selected_squares, available_session_ids)
+    await move_ttt(client, callback_query, sessions[session_id], int(position), session_id, sessions, selected_squares, available_session_ids, get_translation)
 
 async def start_bot():
     logging.info("Launching the bot...")
