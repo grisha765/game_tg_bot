@@ -13,7 +13,7 @@ async def clear_ttt_session(session_id, sessions, selected_squares, available_se
     available_session_ids.append(session_id)
     logging.debug(f"Session {session_id} expired and was removed.")
 
-async def move_ttt(client, callback_query, session, position: int, session_id: int, sessions, selected_squares, available_session_ids, get_translation):
+async def move_ttt(client, callback_query, session, position: int, session_id: int, sessions, selected_squares, available_session_ids, get_translation, save_points):
     user = callback_query.from_user
 
     if session["next_move"] == "X" and user.id != session["x"]["id"]:
@@ -32,7 +32,7 @@ async def move_ttt(client, callback_query, session, position: int, session_id: i
     board = board_states[session_id]
     board_size = session.get("board_size", 3)
     game_mode = session.get("game_mode", 0)
-    winner = check_winner(board, board_size=board_size, game_mode=game_mode)
+    winner = check_winner(board, board_size=board_size, game_mode=game_mode, session_id=session_id, x_points=session["x_points"], o_points=session["o_points"], save_points=save_points, combos=session.get("combos", []))
     logging.debug(f"Session {session_id}: Check winner: {winner}")
     
     if winner == "X":
@@ -43,6 +43,15 @@ async def move_ttt(client, callback_query, session, position: int, session_id: i
             text=f"@{winner_name} ({get_translation(session["lang"], "x").lower()}) {get_translation(session["lang"], "win")}!"
         )
         await clear_ttt_session(session_id, sessions, selected_squares, available_session_ids)
+
+    elif winner == "X wins by points":
+        winner_name = session["x"]["name"]
+        await client.edit_message_text(
+            chat_id=callback_query.message.chat.id,
+            message_id=session["message_id"],
+            text=f"@{winner_name} ({get_translation(session["lang"], "x").lower()}) {get_translation(session["lang"], "win_points")}: {session["x_points"]}!"
+        )
+        await clear_ttt_session(session_id, sessions, selected_squares, available_session_ids)
         
     elif winner == "O":
         winner_name = session["o"]["name"]
@@ -50,6 +59,15 @@ async def move_ttt(client, callback_query, session, position: int, session_id: i
             chat_id=callback_query.message.chat.id,
             message_id=session["message_id"],
             text=f"@{winner_name} ({get_translation(session["lang"], "o").lower()}) {get_translation(session["lang"], "win")}!"
+        )
+        await clear_ttt_session(session_id, sessions, selected_squares, available_session_ids)
+
+    elif winner == "O wins by points":
+        winner_name = session["o"]["name"]
+        await client.edit_message_text(
+            chat_id=callback_query.message.chat.id,
+            message_id=session["message_id"],
+            text=f"@{winner_name} ({get_translation(session["lang"], "o").lower()}) {get_translation(session["lang"], "win_points")}: {session["o_points"]}!"
         )
         await clear_ttt_session(session_id, sessions, selected_squares, available_session_ids)
         
