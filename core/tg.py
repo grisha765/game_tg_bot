@@ -47,6 +47,7 @@ async def handle_del(_, message):
 
 sessions = {}
 selected_squares = {}
+session_cleanup_tasks = {}
 available_session_ids = []
 
 @app.on_message(filters.text & filters.command("chess", prefixes="/") & filters.group)
@@ -93,11 +94,17 @@ async def handle_ttt_start(client, message):
     selected_squares[session_id] = None
     sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], message_id = await ttt_start(session_id, sessions, message, get_translation)
     sessions[session_id]["message_id"] = message_id
-    asyncio.create_task(remove_expired_ttt_session(session_id, sessions, selected_squares, available_session_ids, client))
+    cleanup_task = asyncio.create_task(remove_expired_ttt_session(session_id, sessions, selected_squares, available_session_ids, client))
+    session_cleanup_tasks[session_id] = cleanup_task
+    logging.debug(f"Session {session_id}: Add cleanup Task {session_cleanup_tasks[session_id]}.")
 
 @app.on_callback_query(filters.regex(r"join_o_(\d+)"))
 async def handle_ttt_join(client, callback_query):
     session_id = int(callback_query.data.split('_')[-1])
+    if session_id in session_cleanup_tasks:
+        session_cleanup_tasks[session_id].cancel()
+        logging.debug(f"Session {session_id}: Del cleanup Task {session_cleanup_tasks[session_id]}.")
+        del session_cleanup_tasks[session_id]
     await join_ttt_o(session_id, sessions, client, callback_query, get_translation)
 
 @app.on_callback_query(filters.regex(r"^(\d+)_(\d+)$"))
