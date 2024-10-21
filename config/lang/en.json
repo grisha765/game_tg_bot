@@ -28,6 +28,7 @@
   "o_turn": "It's noughts' turn now!",
   "occupied": "Cell is already occupied!",
   "win": "wins",
+  "win_points": "win by points scored",
   "complete": "Game is over",
   "draw": "draw",
   "unavailable": "Only the session creator can select the game parameters.",
@@ -36,6 +37,7 @@
   "mode_already_selected": "This game mode is already selected.",
   "select_mode": "You have selected the game mode",
   "mode_0": "Standard",
-  "mode_1": "Recursive"
+  "mode_1": "Recursive",
+  "mode_2": "No draws"
 }
 
