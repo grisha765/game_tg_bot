@@ -30,6 +30,10 @@ async def update_buttons(client, session_id, session, message, selected_size, se
                 f"{'>>' if selected_mode == 1 else ''}{get_translation(session["lang"], "mode_1")}{'<<' if selected_mode == 1 else ''}", 
                 callback_data=f"game_mode_1_{session_id}"
             ),
+            InlineKeyboardButton(
+                f"{'>>' if selected_mode == 2 else ''}{get_translation(session["lang"], "mode_2")}{'<<' if selected_mode == 2 else ''}", 
+                callback_data=f"game_mode_2_{session_id}"
+            )
         ]
     else:
         game_mode_buttons = None
