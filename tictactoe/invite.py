@@ -5,19 +5,48 @@ import asyncio
 
 logging = logging_config.setup_logging(__name__)
 
+async def update_board_size_buttons(client, session_id, session, message, selected_size, get_translation):
+    board_size_buttons = [
+        InlineKeyboardButton(
+            f"{'>>' if selected_size == 3 else ''}3x3{'<<' if selected_size == 3 else ''}", 
+            callback_data=f"board_size_3_{session_id}"
+        ),
+        InlineKeyboardButton(
+            f"{'>>' if selected_size == 5 else ''}5x5{'<<' if selected_size == 5 else ''}", 
+            callback_data=f"board_size_5_{session_id}"
+        )
+    ]
+
+    join_button = InlineKeyboardButton(get_translation(session["lang"], "join"), callback_data=f"join_o_{session_id}")
+    reply_markup = InlineKeyboardMarkup([board_size_buttons, [join_button]])
+    
+    await client.edit_message_reply_markup(
+        chat_id=message.chat.id, 
+        message_id=message.id, 
+        reply_markup=reply_markup
+    )
+
 async def ttt_start(session_id, sessions, message, get_translation):
     user = message.from_user
     sessions[session_id]["x"]["id"] = user.id
     sessions[session_id]["x"]["name"] = user.username if user.username else user.first_name
-    logging.debug(f"Session {session_id}: Start game: {sessions[session_id]['x']['name']}")
-    initialize_ttt_board(session_id)
     sessions[session_id]["next_move"] = "X"
+    
+    logging.debug(f"Session {session_id}: Start game: {sessions[session_id]['x']['name']}")
+    
+    board_size_buttons = [
+        InlineKeyboardButton(">>3x3<<", callback_data=f"board_size_3_{session_id}"),
+        InlineKeyboardButton("5x5", callback_data=f"board_size_5_{session_id}")
+    ]
+    
     join_button = InlineKeyboardButton(get_translation(sessions[session_id]["lang"], "join"), callback_data=f"join_o_{session_id}")
-    reply_markup = InlineKeyboardMarkup([[join_button]])
+    reply_markup = InlineKeyboardMarkup([board_size_buttons, [join_button]])
+    
     msg = await message.reply_text(
-        f"{get_translation(sessions[session_id]["lang"], "session_id")}: {session_id}\n{get_translation(sessions[session_id]["lang"], "x")}: @{sessions[session_id]['x']['name']}\n{get_translation(sessions[session_id]["lang"], "wait")}",
+        f"{get_translation(sessions[session_id]['lang'], 'session_id')}: {session_id}\n{get_translation(sessions[session_id]['lang'], 'x')}: @{sessions[session_id]['x']['name']}\n{get_translation(sessions[session_id]['lang'], 'wait')}",
         reply_markup=reply_markup
     )
+    
     sessions[session_id]["message_id"] = msg.id
     return sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], msg.id
 
@@ -35,6 +64,8 @@ async def join_ttt_o(session_id, sessions, client, callback_query, get_translati
         sessions[session_id]["o"]["id"] = user.id
         sessions[session_id]["o"]["name"] = user.username if user.username else user.first_name
         logging.debug(f"Session {session_id}: Join game: {sessions[session_id]['o']['name']}")
+        initialize_ttt_board(session_id, board_size=sessions[session_id]["board_size"])
+        logging.debug(f"Session {session_id}: initialize board {sessions[session_id]["board_size"]}")
         await callback_query.message.edit_text(
             f"{get_translation(sessions[session_id]["lang"], "x")}: @{sessions[session_id]['x']['name']}\n{get_translation(sessions[session_id]["lang"], "o")}: @{sessions[session_id]['o']['name']}\n{get_translation(sessions[session_id]["lang"], "start_game")}"
         )
