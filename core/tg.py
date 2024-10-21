@@ -6,7 +6,7 @@ from casino.point import check_wins, top_command
 from casino.emoji import set_emoji_command, get_emoji_command, del_emoji_command
 from core.trans import get_translation
 from chesse.invite import chess_start, join_chess_black, remove_expired_chess_session
-from tictactoe.invite import ttt_start, remove_expired_ttt_session, join_ttt_o
+from tictactoe.invite import ttt_start, remove_expired_ttt_session, join_ttt_o, update_board_size_buttons
 from chesse.game import move_chess
 from tictactoe.game import move_ttt
 from config import logging_config
@@ -89,6 +89,7 @@ async def handle_ttt_start(client, message):
         "o": {"id": None, "name": None},
         "message_id": None,
         "chat_id": message.chat.id,
+        "board_size": 3,
         "lang": message.from_user.language_code
     }
     selected_squares[session_id] = None
@@ -97,6 +98,19 @@ async def handle_ttt_start(client, message):
     cleanup_task = asyncio.create_task(remove_expired_ttt_session(session_id, sessions, selected_squares, available_session_ids, client))
     session_cleanup_tasks[session_id] = cleanup_task
     logging.debug(f"Session {session_id}: Add cleanup Task {session_cleanup_tasks[session_id]}.")
+
+@app.on_callback_query(filters.regex(r"^board_size_(\d+)_(\d+)$"))
+async def handle_board_size_selection(client, callback_query):
+    size, session_id = map(int, callback_query.data.split('_')[2:])
+    
+    if sessions[session_id]["x"]["id"] != callback_query.from_user.id:
+        await callback_query.answer(get_translation(sessions[session_id]["lang"], "unavailable"))
+        return
+    
+    sessions[session_id]["board_size"] = size
+
+    await update_board_size_buttons(client, session_id, sessions[session_id], callback_query.message, size, get_translation)
+    await callback_query.answer(f"{get_translation(sessions[session_id]["lang"], "unavailable")} {size}x{size}")
 
 @app.on_callback_query(filters.regex(r"join_o_(\d+)"))
 async def handle_ttt_join(client, callback_query):
