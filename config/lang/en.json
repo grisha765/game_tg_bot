@@ -1,5 +1,5 @@
 {
-  "help": "Bot commands:\n/help - help.\n/spin - spin the wheel.\n/wins - wins.\n/top - top winners.\n/get - view set emojis and phrases.\n/set - set custom emojis and winning phrases.\nExample: /set 🍒:Cherry. 🍋:Lemon. 🍏:Apple. 🍆:Eggplant.\nTelegram Premium emojis are not supported.",
+  "help": "Bot commands:\n/help - help.\n/spin - spin the wheel.\n/wins - wins.\n/top - top winners.\n/get - view set emojis and phrases.\n/set - set custom emojis and winning phrases.\nExample: /set 🍒:Cherry. 🍋:Lemon. 🍏:Apple. 🍆:Eggplant.\nTelegram Premium emojis are not supported.\nDEV functions:\n/ttt - tic-tac-toe.\n/chess - chess. (*VERY GLITCHY*)",
   "active_spin": "You are already spinning the wheel. Please wait for the current spin to finish.",
   "antispam": "Please wait",
   "antispam_sec": "seconds before spinning again.",
