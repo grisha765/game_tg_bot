@@ -13,19 +13,30 @@ async def clear_ttt_session(session_id, sessions, selected_squares, available_se
     logging.debug(f"Session {session_id} expired and was removed.")
 
 def check_winner(board, board_size=3):
+    if board_size == 3:
+        win_length = 3
+    elif board_size in [5, 7]:
+        win_length = 4
+    else:
+        win_length = board_size
+    
     winning_combinations = []
 
     for i in range(board_size):
-        winning_combinations.append([i * board_size + j for j in range(board_size)])
-
+        for j in range(board_size - win_length + 1):
+            winning_combinations.append([i * board_size + k for k in range(j, j + win_length)])
+    
     for i in range(board_size):
-        winning_combinations.append([i + j * board_size for j in range(board_size)])
-
-    winning_combinations.append([i * (board_size + 1) for i in range(board_size)])
-
-    winning_combinations.append([i * (board_size - 1) for i in range(1, board_size + 1)])
-
-    logging.debug(f"Winning combinations for {board_size}x{board_size}: {winning_combinations}")
+        for j in range(board_size - win_length + 1):
+            winning_combinations.append([k * board_size + i for k in range(j, j + win_length)])
+    
+    for i in range(board_size - win_length + 1):
+        for j in range(board_size - win_length + 1):
+            winning_combinations.append([((i + k) * board_size + (j + k)) for k in range(win_length)])
+    
+    for i in range(board_size - win_length + 1):
+        for j in range(win_length - 1, board_size):
+            winning_combinations.append([((i + k) * board_size + (j - k)) for k in range(win_length)])
 
     for combo in winning_combinations:
         if all(board[pos] == board[combo[0]] and board[pos] != " " for pos in combo):
