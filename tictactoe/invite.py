@@ -5,7 +5,7 @@ import asyncio
 
 logging = logging_config.setup_logging(__name__)
 
-async def update_board_size_buttons(client, session_id, session, message, selected_size, get_translation):
+async def update_buttons(client, session_id, session, message, selected_size, selected_mode, get_translation):
     board_size_buttons = [
         InlineKeyboardButton(
             f"{'>>' if selected_size == 3 else ''}3x3{'<<' if selected_size == 3 else ''}", 
@@ -20,9 +20,29 @@ async def update_board_size_buttons(client, session_id, session, message, select
             callback_data=f"board_size_7_{session_id}"
         )
     ]
+    if session["board_size"] != 3:
+        game_mode_buttons = [
+            InlineKeyboardButton(
+                f"{'>>' if selected_mode == 0 else ''}{get_translation(session["lang"], "mode_0")}{'<<' if selected_mode == 0 else ''}", 
+                callback_data=f"game_mode_0_{session_id}"
+            ),
+            InlineKeyboardButton(
+                f"{'>>' if selected_mode == 1 else ''}{get_translation(session["lang"], "mode_1")}{'<<' if selected_mode == 1 else ''}", 
+                callback_data=f"game_mode_1_{session_id}"
+            ),
+        ]
+    else:
+        game_mode_buttons = None
 
+    keyboard = [board_size_buttons]
     join_button = InlineKeyboardButton(get_translation(session["lang"], "join"), callback_data=f"join_o_{session_id}")
-    reply_markup = InlineKeyboardMarkup([board_size_buttons, [join_button]])
+
+    if game_mode_buttons:
+        keyboard.append(game_mode_buttons)
+
+    keyboard.append([join_button])
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
     
     await client.edit_message_reply_markup(
         chat_id=message.chat.id, 
@@ -43,9 +63,12 @@ async def ttt_start(session_id, sessions, message, get_translation):
         InlineKeyboardButton("5x5", callback_data=f"board_size_5_{session_id}"),
         InlineKeyboardButton("7x7", callback_data=f"board_size_7_{session_id}")
     ]
-    
+
+    keyboard = [board_size_buttons]
     join_button = InlineKeyboardButton(get_translation(sessions[session_id]["lang"], "join"), callback_data=f"join_o_{session_id}")
-    reply_markup = InlineKeyboardMarkup([board_size_buttons, [join_button]])
+    keyboard.append([join_button])
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
     
     msg = await message.reply_text(
         f"{get_translation(sessions[session_id]['lang'], 'session_id')}: {session_id}\n{get_translation(sessions[session_id]['lang'], 'x')}: @{sessions[session_id]['x']['name']}\n{get_translation(sessions[session_id]['lang'], 'wait')}",
@@ -55,7 +78,7 @@ async def ttt_start(session_id, sessions, message, get_translation):
     sessions[session_id]["message_id"] = msg.id
     return sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], msg.id
 
-async def join_ttt_o(session_id, sessions, client, callback_query, get_translation):
+async def join_ttt_o(session_id, sessions, client, callback_query, get_translation, session_cleanup_tasks):
     user = callback_query.from_user
 
     if user.id == sessions[session_id]["x"]["id"]:
@@ -63,9 +86,13 @@ async def join_ttt_o(session_id, sessions, client, callback_query, get_translati
                 get_translation(sessions[session_id]["lang"], "incorrect_join0") +
                 get_translation(sessions[session_id]["lang"], "x").lower() +
                 get_translation(sessions[session_id]["lang"], "incorrect_join1") +
-                get_translation(sessions[session_id]["lang"], "o").lower()
+                get_translation(sessions[session_id]["lang"], "o").lower() + "."
             )
     elif not sessions[session_id]["o"]["id"]:
+        if session_id in session_cleanup_tasks:
+            session_cleanup_tasks[session_id].cancel()
+            logging.debug(f"Session {session_id}: Del cleanup Task {session_cleanup_tasks[session_id]}.")
+            del session_cleanup_tasks[session_id]
         sessions[session_id]["o"]["id"] = user.id
         sessions[session_id]["o"]["name"] = user.username if user.username else user.first_name
         logging.debug(f"Session {session_id}: Join game: {sessions[session_id]['o']['name']}")
