@@ -1,4 +1,5 @@
 from tictactoe.board import update_ttt_board, board_states, send_ttt_board
+from tictactoe.rules import check_winner
 from config import logging_config
 logging = logging_config.setup_logging(__name__)
 
@@ -11,41 +12,6 @@ async def clear_ttt_session(session_id, sessions, selected_squares, available_se
     
     available_session_ids.append(session_id)
     logging.debug(f"Session {session_id} expired and was removed.")
-
-def check_winner(board, board_size=3):
-    if board_size == 3:
-        win_length = 3
-    elif board_size in [5, 7]:
-        win_length = 4
-    else:
-        win_length = board_size
-    
-    winning_combinations = []
-
-    for i in range(board_size):
-        for j in range(board_size - win_length + 1):
-            winning_combinations.append([i * board_size + k for k in range(j, j + win_length)])
-    
-    for i in range(board_size):
-        for j in range(board_size - win_length + 1):
-            winning_combinations.append([k * board_size + i for k in range(j, j + win_length)])
-    
-    for i in range(board_size - win_length + 1):
-        for j in range(board_size - win_length + 1):
-            winning_combinations.append([((i + k) * board_size + (j + k)) for k in range(win_length)])
-    
-    for i in range(board_size - win_length + 1):
-        for j in range(win_length - 1, board_size):
-            winning_combinations.append([((i + k) * board_size + (j - k)) for k in range(win_length)])
-
-    for combo in winning_combinations:
-        if all(board[pos] == board[combo[0]] and board[pos] != " " for pos in combo):
-            return board[combo[0]]
-
-    if all(cell != " " for cell in board):
-        return "draw"
-
-    return None
 
 async def move_ttt(client, callback_query, session, position: int, session_id: int, sessions, selected_squares, available_session_ids, get_translation):
     user = callback_query.from_user
@@ -65,7 +31,8 @@ async def move_ttt(client, callback_query, session, position: int, session_id: i
     
     board = board_states[session_id]
     board_size = session.get("board_size", 3)
-    winner = check_winner(board, board_size=board_size)
+    game_mode = session.get("game_mode", 0)
+    winner = check_winner(board, board_size=board_size, game_mode=game_mode)
     logging.debug(f"Session {session_id}: Check winner: {winner}")
     
     if winner == "X":
