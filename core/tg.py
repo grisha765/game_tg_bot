@@ -159,7 +159,11 @@ async def handle_ttt_join(client, callback_query):
 async def handle_ttt_move(client, callback_query):
     session_id, position = callback_query.data.split('_')
     session_id = int(session_id)
-    await move_ttt(client, callback_query, sessions[session_id], int(position), session_id, get_translation, save_points)
+    session = sessions.get(session_id)
+    if session != None:
+        await move_ttt(client, callback_query, sessions[session_id], int(position), session_id, get_translation, save_points)
+    else:
+        await callback_query.answer(get_translation(callback_query.from_user.language_code, 'complete'))
 
 async def start_bot():
     logging.info("Launching the bot...")
