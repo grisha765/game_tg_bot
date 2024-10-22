@@ -58,7 +58,6 @@ async def ttt_start(session_id, sessions, message, get_translation):
     user = message.from_user
     sessions[session_id]["x"]["id"] = user.id
     sessions[session_id]["x"]["name"] = user.username if user.username else user.first_name
-    sessions[session_id]["next_move"] = "X"
     
     logging.debug(f"Session {session_id}: Start game: {sessions[session_id]['x']['name']}")
     
@@ -105,7 +104,9 @@ async def join_ttt_o(session_id, sessions, client, callback_query, get_translati
         await callback_query.message.edit_text(
             f"{get_translation(sessions[session_id]["lang"], "x")}: @{sessions[session_id]['x']['name']}\n{get_translation(sessions[session_id]["lang"], "o")}: @{sessions[session_id]['o']['name']}\n{get_translation(sessions[session_id]["lang"], "start_game")}"
         )
-        await send_ttt_board(session_id, client, callback_query.message.id, callback_query.message.chat.id, "❌", sessions[session_id], get_translation)
+        next_player = "🔴" if sessions[session_id]["next_move"] == "O" else "❌"
+        logging.debug(f"Session {session_id}: start move {sessions[session_id]["next_move"]}")
+        await send_ttt_board(session_id, client, callback_query.message.id, callback_query.message.chat.id, sessions[session_id], get_translation, next_player)
     else:
         await callback_query.answer(get_translation(sessions[session_id]["lang"], "game_started"))
 
