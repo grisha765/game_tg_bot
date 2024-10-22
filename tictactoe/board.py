@@ -5,19 +5,37 @@ board_states = {}
 def initialize_ttt_board(session_id, board_size=3):
     board_states[session_id] = [" " for _ in range(board_size * board_size)]
 
-async def send_ttt_board(session_id, client, message_id, chat_id, current_player, session, get_translation):
+def del_ttt_board(session_id):
+    if session_id in board_states:
+        del board_states[session_id]
+
+async def send_ttt_board(session_id, client, message_id, chat_id, session, get_translation, current_player=None, winner=None, winning_combo=None):
     board = board_states[session_id]
     board_size = session.get("board_size", 3)
     
     buttons = []
     for i in range(board_size * board_size):
         symbol = "❌" if board[i] == "X" else "🔴" if board[i] == "O" else " "
+        if winner and winning_combo and i in winning_combo:
+            symbol = "🟢" if winner == "O" else "❎"
         buttons.append(InlineKeyboardButton(symbol, callback_data=f"{session_id}_{i}"))
     
     keyboard = InlineKeyboardMarkup([buttons[i:i+board_size] for i in range(0, len(buttons), board_size)])
     
-    x_player = f"@{session['x']['name']}" + (" <==" if current_player == "❌" else "")
-    o_player = f"@{session['o']['name']}" + (" <==" if current_player == "🔴" else "")
+    if current_player is not None:
+        x_player = f"@{session['x']['name']}" + (" <==" if current_player == "❌" else "")
+        o_player = f"@{session['o']['name']}" + (" <==" if current_player == "🔴" else "")
+    else:
+        if winner == "D":
+            x_player = f"@{session['x']['name']} <== {get_translation(session['lang'], 'draw')}"
+            o_player = f"@{session['o']['name']} <== {get_translation(session['lang'], 'draw')}"
+        elif winner is not None and "P" in winner:
+            x_player = f"@{session['x']['name']}" + (f" <== {get_translation(session['lang'], 'win')}" if winner == "X_P" else "")
+            o_player = f"@{session['o']['name']}" + (f" <== {get_translation(session['lang'], 'win')}" if winner == "O_P" else "")
+        else:
+            x_player = f"@{session['x']['name']}" + (f" <== {get_translation(session['lang'], 'win')}" if winner == "X" else "")
+            o_player = f"@{session['o']['name']}" + (f" <== {get_translation(session['lang'], 'win')}" if winner == "O" else "")
+
 
     x_points = session["x_points"] if session["game_mode"] == 2 else ""
     o_points = session["o_points"] if session["game_mode"] == 2 else ""
@@ -32,12 +50,15 @@ async def send_ttt_board(session_id, client, message_id, chat_id, current_player
         reply_markup=keyboard
     )
 
-async def update_ttt_board(session_id, position, symbol):
-    board = board_states[session_id]
-    if board[position] == " ":
-        board[position] = symbol
-        return True
-    return False
+async def update_ttt_board(session_id, session, position, symbol, callback_query, get_translation):
+    board = board_states.get(session_id)
+    if board == None:
+        await callback_query.answer(get_translation(session['lang'], 'complete'))
+    else:
+        if board[position] == " ":
+            board[position] = symbol
+            return True
+        return False
 
 if __name__ == "__main__":
     raise RuntimeError("This module should be run only via main.py")
