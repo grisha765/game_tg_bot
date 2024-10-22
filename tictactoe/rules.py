@@ -12,8 +12,8 @@ def check_winner(board, board_size, game_mode, session_id, x_points, o_points, s
     def check_combinations(combinations):
         for combo in combinations:
             if all(board[pos] == board[combo[0]] and board[pos] != " " for pos in combo):
-                return board[combo[0]]
-        return None
+                return board[combo[0]], combo
+        return None, None
 
     if game_mode == 0 or game_mode == 2:
         winning_combinations = []
@@ -35,9 +35,9 @@ def check_winner(board, board_size, game_mode, session_id, x_points, o_points, s
                 winning_combinations.append([((i + k) * board_size + (j - k)) for k in range(win_length)])
 
         if game_mode == 0 or game_mode == 2:
-            winner = check_combinations(winning_combinations)
+            winner, winning_combo = check_combinations(winning_combinations)
             if winner:
-                return winner
+                return winner, winning_combo
 
     if game_mode == 1:
         def is_valid(x, y):
@@ -45,25 +45,27 @@ def check_winner(board, board_size, game_mode, session_id, x_points, o_points, s
 
         def check_recursive(x, y, symbol, visited):
             if len(visited) == win_length:
-                return True
+                return True, visited
             directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (1, 1), (-1, 1), (1, -1)]
             for dx, dy in directions:
                 nx, ny = x + dx, y + dy
                 if is_valid(nx, ny) and (nx, ny) not in visited and board[nx * board_size + ny] == symbol:
-                    if check_recursive(nx, ny, symbol, visited | {(nx, ny)}):
-                        return True
-            return False
+                    result, path = check_recursive(nx, ny, symbol, visited | {(nx, ny)})
+                    if result:
+                        return True, path
+            return False, visited
 
         for i in range(board_size):
             for j in range(board_size):
                 if board[i * board_size + j] != " ":
                     symbol = board[i * board_size + j]
-                    if check_recursive(i, j, symbol, {(i, j)}):
-                        return symbol
+                    result, winning_combo = check_recursive(i, j, symbol, {(i, j)})
+                    if result:
+                        return symbol, [(x * board_size + y) for x, y in winning_combo]
 
     if game_mode == 0 or game_mode == 1:
         if all(cell != " " for cell in board):
-            return "draw"
+            return "draw", None
 
     if game_mode == 2:
         point_combinations = []
@@ -100,13 +102,13 @@ def check_winner(board, board_size, game_mode, session_id, x_points, o_points, s
 
         if all(cell != " " for cell in board):
             if x_points > o_points:
-                return "X wins by points"
+                return "X wins by points", None
             elif o_points > x_points:
-                return "O wins by points"
+                return "O wins by points", None
             else:
-                return "draw"
+                return "draw", None
 
-    return None
+    return None, None
 
 if __name__ == "__main__":
     raise RuntimeError("This module should be run only via main.py")
