@@ -1,4 +1,4 @@
-import asyncio
+import asyncio, random
 from pyrogram import Client, filters
 from config.config import Config
 from casino.spin import spin_func
@@ -87,6 +87,7 @@ async def handle_ttt_start(client, message):
     sessions[session_id] = {
         "x": {"id": None, "name": None},
         "o": {"id": None, "name": None},
+        "next_move": random.choice(["X", "O"]),
         "x_points": 0,
         "o_points": 0,
         "combos": [],
@@ -158,7 +159,7 @@ async def handle_ttt_join(client, callback_query):
 async def handle_ttt_move(client, callback_query):
     session_id, position = callback_query.data.split('_')
     session_id = int(session_id)
-    await move_ttt(client, callback_query, sessions[session_id], int(position), session_id, sessions, selected_squares, available_session_ids, get_translation, save_points)
+    await move_ttt(client, callback_query, sessions[session_id], int(position), session_id, get_translation, save_points)
 
 async def start_bot():
     logging.info("Launching the bot...")
