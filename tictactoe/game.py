@@ -14,6 +14,7 @@ async def move_ttt(client, callback_query, session, position: int, session_id: i
         return
     elif session["next_move"] == "D":
         await callback_query.answer(get_translation(session['lang'], 'complete'))
+        return
 
     player_symbol = session["next_move"]
     logging.debug(f"User {user.id}: Select {position}")
