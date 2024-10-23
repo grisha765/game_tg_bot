@@ -106,11 +106,11 @@ async def gen_remove_session(client, sessions, session_id):
     logging.debug(f"All cleanup tasks: {session_cleanup_tasks}")
 
 @app.on_inline_query()
-async def answer_inline(client, inline_query):
+async def answer_inline(_, inline_query):
     sessions, session_id = gen_session(inline_query, None)
     sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], results = await ttt_start(session_id, sessions, inline_query, get_translation)
 
-    await gen_remove_session(client, sessions, session_id)
+    # await gen_remove_session(client, sessions, session_id)
 
     await inline_query.answer(results, cache_time=1)
 
@@ -120,7 +120,7 @@ async def handle_ttt_start(client, message):
     sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], message_id = await ttt_start(session_id, sessions, message, get_translation)
     sessions[session_id]["message_id"] = message_id
 
-    await gen_remove_session(client, sessions, session_id)
+    # await gen_remove_session(client, sessions, session_id)
 
 @app.on_callback_query(filters.regex(r"^board_size_(\d+)_(\d+)$"))
 async def handle_board_size_selection(client, callback_query):
