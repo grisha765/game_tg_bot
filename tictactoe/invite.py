@@ -1,4 +1,4 @@
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InlineQueryResultArticle, InputTextMessageContent
 from tictactoe.board import send_ttt_board, initialize_ttt_board
 from config import logging_config
 import asyncio
@@ -47,12 +47,17 @@ async def update_buttons(client, session_id, session, message, selected_size, se
     keyboard.append([join_button])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await client.edit_message_reply_markup(
-        chat_id=message.chat.id, 
-        message_id=message.id, 
-        reply_markup=reply_markup
-    )
+    if message.inline_message_id:
+        await client.edit_inline_reply_markup(
+            inline_message_id=message.inline_message_id,
+            reply_markup=reply_markup,
+        )
+    else:
+        await client.edit_message_reply_markup(
+            chat_id=session["chat_id"], 
+            message_id=message.message.id, 
+            reply_markup=reply_markup
+        )
 
 async def ttt_start(session_id, sessions, message, get_translation):
     user = message.from_user
@@ -72,17 +77,36 @@ async def ttt_start(session_id, sessions, message, get_translation):
     keyboard.append([join_button])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    msg = await message.reply_text(
-        f"{get_translation(sessions[session_id]['lang'], 'session_id')}: {session_id}\n{get_translation(sessions[session_id]['lang'], 'x')}: @{sessions[session_id]['x']['name']}\n{get_translation(sessions[session_id]['lang'], 'wait')}",
-        reply_markup=reply_markup
-    )
-    
-    sessions[session_id]["message_id"] = msg.id
-    return sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], msg.id
+
+    if sessions[session_id]["chat_id"] == None:
+        results = [
+            InlineQueryResultArticle(
+                title=get_translation(sessions[session_id]['lang'], 'inline_title'),
+                input_message_content=InputTextMessageContent(
+                    f"{get_translation(sessions[session_id]['lang'], 'session_id')}: {session_id}\n"
+                    f"{get_translation(sessions[session_id]['lang'], 'x')}: @{sessions[session_id]['x']['name']}\n"
+                    f"{get_translation(sessions[session_id]['lang'], 'wait')}"
+                ),
+                reply_markup=reply_markup
+            )
+        ]
+        return sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], results
+    else:
+        msg = await message.reply_text(
+            f"{get_translation(sessions[session_id]['lang'], 'session_id')}: {session_id}\n"
+            f"{get_translation(sessions[session_id]['lang'], 'x')}: @{sessions[session_id]['x']['name']}\n"
+            f"{get_translation(sessions[session_id]['lang'], 'wait')}",
+            reply_markup=reply_markup
+        )
+
+        sessions[session_id]["message_id"] = msg.id
+        return sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], msg.id
 
 async def join_ttt_o(session_id, sessions, client, callback_query, get_translation, session_cleanup_tasks):
     user = callback_query.from_user
+    if sessions.get(session_id) == None:
+        await callback_query.answer(get_translation(callback_query.from_user.language_code, 'complete'))
+        return
 
     if user.id == sessions[session_id]["x"]["id"]:
             await callback_query.answer(
@@ -98,24 +122,33 @@ async def join_ttt_o(session_id, sessions, client, callback_query, get_translati
             del session_cleanup_tasks[session_id]
         sessions[session_id]["o"]["id"] = user.id
         sessions[session_id]["o"]["name"] = user.username if user.username else user.first_name
+        if sessions[session_id]["message_id"] == None:
+            sessions[session_id]["message_id"] = callback_query.inline_message_id
         logging.debug(f"Session {session_id}: Join game: {sessions[session_id]['o']['name']}")
         initialize_ttt_board(session_id, board_size=sessions[session_id]["board_size"])
         logging.debug(f"Session {session_id}: initialize board {sessions[session_id]["board_size"]}")
-        await callback_query.message.edit_text(
-            f"{get_translation(sessions[session_id]["lang"], "x")}: @{sessions[session_id]['x']['name']}\n{get_translation(sessions[session_id]["lang"], "o")}: @{sessions[session_id]['o']['name']}\n{get_translation(sessions[session_id]["lang"], "start_game")}"
-        )
+        if sessions[session_id]["chat_id"] == None:
+            await client.edit_inline_text(
+                inline_message_id=sessions[session_id]["message_id"],
+                text=f"{get_translation(sessions[session_id]["lang"], "x")}: @{sessions[session_id]['x']['name']}\n{get_translation(sessions[session_id]["lang"], "o")}: @{sessions[session_id]['o']['name']}\n{get_translation(sessions[session_id]["lang"], "start_game")}",
+            )
+        else:
+            await callback_query.message.edit_text(
+                f"{get_translation(sessions[session_id]["lang"], "x")}: @{sessions[session_id]['x']['name']}\n{get_translation(sessions[session_id]["lang"], "o")}: @{sessions[session_id]['o']['name']}\n{get_translation(sessions[session_id]["lang"], "start_game")}"
+            )
         next_player = "🔴" if sessions[session_id]["next_move"] == "O" else "❌"
         logging.debug(f"Session {session_id}: start move {sessions[session_id]["next_move"]}")
-        await send_ttt_board(session_id, client, callback_query.message.id, callback_query.message.chat.id, sessions[session_id], get_translation, next_player)
+        await send_ttt_board(session_id, client, sessions[session_id], get_translation, next_player)
     else:
         await callback_query.answer(get_translation(sessions[session_id]["lang"], "game_started"))
 
 async def remove_expired_ttt_session(session_id, sessions, selected_squares, available_session_ids, client):
-    await asyncio.sleep(300)
+    await asyncio.sleep(600)
     if not sessions[session_id]["o"]["id"]:
-        chat_id = sessions[session_id]["chat_id"]
-        message_id = sessions[session_id]["message_id"]
-        await client.delete_messages(chat_id, message_id)
+        if sessions[session_id]["chat_id"] != None:
+            chat_id = sessions[session_id]["chat_id"]
+            message_id = sessions[session_id]["message_id"]
+            await client.delete_messages(chat_id, message_id)
         del sessions[session_id]
         del selected_squares[session_id]
         available_session_ids.append(session_id)
