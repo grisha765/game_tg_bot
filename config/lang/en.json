@@ -38,6 +38,7 @@
   "select_mode": "You have selected the game mode",
   "mode_0": "Standard",
   "mode_1": "Recursive",
-  "mode_2": "No draws"
+  "mode_2": "No draws",
+  "inline_title": "Play Tic-Tac-Toe!"
 }
 
