@@ -119,7 +119,6 @@ async def handle_ttt_start(client, message):
     sessions, session_id = gen_session(message, message.chat.id)
     sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], message_id = await ttt_start(session_id, sessions, message, get_translation)
     sessions[session_id]["message_id"] = message_id
-    print(sessions[session_id]["message_id"])
 
     await gen_remove_session(client, sessions, session_id)
 
