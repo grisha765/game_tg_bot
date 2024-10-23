@@ -78,8 +78,7 @@ async def handle_chess_move(client, callback_query):
     session_id = int(session_id)
     selected_squares[session_id] = await move_chess(client, callback_query, sessions[session_id], selected_squares[session_id])
 
-@app.on_message(filters.text & filters.command("ttt", prefixes="/") & filters.group)
-async def handle_ttt_start(client, message):
+def gen_session(message, chat_id):
     if available_session_ids:
         session_id = available_session_ids.pop(0)
     else:
@@ -92,22 +91,44 @@ async def handle_ttt_start(client, message):
         "o_points": 0,
         "combos": [],
         "message_id": None,
-        "chat_id": message.chat.id,
+        "chat_id": chat_id,
         "board_size": 3,
         "game_mode": 0,
         "lang": message.from_user.language_code
     }
     selected_squares[session_id] = None
-    sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], message_id = await ttt_start(session_id, sessions, message, get_translation)
-    sessions[session_id]["message_id"] = message_id
+    return sessions, session_id
+
+async def gen_remove_session(client, sessions, session_id):
     cleanup_task = asyncio.create_task(remove_expired_ttt_session(session_id, sessions, selected_squares, available_session_ids, client))
     session_cleanup_tasks[session_id] = cleanup_task
     logging.debug(f"Session {session_id}: Add cleanup Task {session_cleanup_tasks[session_id]}.")
     logging.debug(f"All cleanup tasks: {session_cleanup_tasks}")
 
+@app.on_inline_query()
+async def answer_inline(client, inline_query):
+    sessions, session_id = gen_session(inline_query, None)
+    sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], results = await ttt_start(session_id, sessions, inline_query, get_translation)
+
+    await gen_remove_session(client, sessions, session_id)
+
+    await inline_query.answer(results, cache_time=1)
+
+@app.on_message(filters.text & filters.command("ttt", prefixes="/") & filters.group)
+async def handle_ttt_start(client, message):
+    sessions, session_id = gen_session(message, message.chat.id)
+    sessions[session_id]["x"]["id"], sessions[session_id]["x"]["name"], message_id = await ttt_start(session_id, sessions, message, get_translation)
+    sessions[session_id]["message_id"] = message_id
+    print(sessions[session_id]["message_id"])
+
+    await gen_remove_session(client, sessions, session_id)
+
 @app.on_callback_query(filters.regex(r"^board_size_(\d+)_(\d+)$"))
 async def handle_board_size_selection(client, callback_query):
     size, session_id = map(int, callback_query.data.split('_')[2:])
+    if sessions.get(session_id) == None:
+        await callback_query.answer(get_translation(callback_query.from_user.language_code, 'complete'))
+        return
     
     if sessions[session_id]["x"]["id"] != callback_query.from_user.id:
         await callback_query.answer(get_translation(sessions[session_id]["lang"], "unavailable"))
@@ -122,13 +143,16 @@ async def handle_board_size_selection(client, callback_query):
         logging.debug(f"Session {session_id}: selected board size {size}, mod is selected {sessions[session_id]["game_mode"]}")
     
     sessions[session_id]["board_size"] = size
-
-    await update_buttons(client, session_id, sessions[session_id], callback_query.message, size, sessions[session_id]["game_mode"], get_translation)
+    await update_buttons(client, session_id, sessions[session_id], callback_query, size, sessions[session_id]["game_mode"], get_translation)
     await callback_query.answer(f"{get_translation(sessions[session_id]["lang"], "select_size")}: {size}x{size}.")
 
 @app.on_callback_query(filters.regex(r"^game_mode_(\d+)_(\d+)$"))
 async def handle_game_mode_selection(client, callback_query):
     mode, session_id = map(int, callback_query.data.split('_')[2:])
+    if sessions.get(session_id) == None:
+        await callback_query.answer(get_translation(callback_query.from_user.language_code, 'complete'))
+        return
+
     if sessions[session_id]["x"]["id"] != callback_query.from_user.id:
         await callback_query.answer(get_translation(sessions[session_id]["lang"], "unavailable"))
         return
@@ -138,8 +162,7 @@ async def handle_game_mode_selection(client, callback_query):
         return
 
     sessions[session_id]["game_mode"] = mode
-
-    await update_buttons(client, session_id, sessions[session_id], callback_query.message, sessions[session_id]["board_size"], mode, get_translation)
+    await update_buttons(client, session_id, sessions[session_id], callback_query, sessions[session_id]["board_size"], mode, get_translation)
     await callback_query.answer(f"{get_translation(sessions[session_id]["lang"], "select_mode")}: {get_translation(sessions[session_id]["lang"], f"mode_{mode}").lower()}")
 
 def save_points(session_id, x_points=None, o_points=None, combos=None):
