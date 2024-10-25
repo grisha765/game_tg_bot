@@ -3,7 +3,7 @@ from tictactoe.rules import check_winner
 from config import logging_config
 logging = logging_config.setup_logging(__name__)
 
-async def move_ttt(client, callback_query, session, position: int, session_id: int, get_translation, save_points):
+async def move_ttt(client, callback_query, session, position: int, session_id: str, get_translation, save_points):
     user = callback_query.from_user
 
     if session["next_move"] == "X" and user.id != session["x"]["id"]:
