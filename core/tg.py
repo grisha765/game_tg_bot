@@ -1,4 +1,4 @@
-import asyncio, random
+import asyncio, random, uuid
 from pyrogram import Client, filters
 from config.config import Config
 from casino.spin import spin_func
@@ -79,10 +79,7 @@ async def handle_chess_move(client, callback_query):
     selected_squares[session_id] = await move_chess(client, callback_query, sessions[session_id], selected_squares[session_id])
 
 def gen_session(message, chat_id):
-    if available_session_ids:
-        session_id = available_session_ids.pop(0)
-    else:
-        session_id = len(sessions) + 1
+    session_id = uuid.uuid4().hex[:12]
     sessions[session_id] = {
         "x": {"id": None, "name": None},
         "o": {"id": None, "name": None},
@@ -122,9 +119,10 @@ async def handle_ttt_start(client, message):
 
     # await gen_remove_session(client, sessions, session_id)
 
-@app.on_callback_query(filters.regex(r"^board_size_(\d+)_(\d+)$"))
+@app.on_callback_query(filters.regex(r"^board_size_(\d+)_([a-zA-Z0-9]+)$"))
 async def handle_board_size_selection(client, callback_query):
-    size, session_id = map(int, callback_query.data.split('_')[2:])
+    size = int(callback_query.data.split('_')[2])
+    session_id = str(callback_query.data.split('_')[3])
     if sessions.get(session_id) == None:
         await callback_query.answer(get_translation(callback_query.from_user.language_code, 'complete'))
         return
@@ -145,9 +143,10 @@ async def handle_board_size_selection(client, callback_query):
     await update_buttons(client, session_id, sessions[session_id], callback_query, size, sessions[session_id]["game_mode"], get_translation)
     await callback_query.answer(f"{get_translation(sessions[session_id]["lang"], "select_size")}: {size}x{size}.")
 
-@app.on_callback_query(filters.regex(r"^game_mode_(\d+)_(\d+)$"))
+@app.on_callback_query(filters.regex(r"^game_mode_(\d+)_([a-zA-Z0-9]+)$"))
 async def handle_game_mode_selection(client, callback_query):
-    mode, session_id = map(int, callback_query.data.split('_')[2:])
+    mode = int(callback_query.data.split('_')[2])
+    session_id = str(callback_query.data.split('_')[3])
     if sessions.get(session_id) == None:
         await callback_query.answer(get_translation(callback_query.from_user.language_code, 'complete'))
         return
@@ -172,15 +171,15 @@ def save_points(session_id, x_points=None, o_points=None, combos=None):
     if combos != None:
         sessions[session_id]["combos"].extend(combos)
 
-@app.on_callback_query(filters.regex(r"join_o_(\d+)"))
+@app.on_callback_query(filters.regex(r"join_o_([a-zA-Z0-9]+)"))
 async def handle_ttt_join(client, callback_query):
-    session_id = int(callback_query.data.split('_')[-1])
+    session_id = callback_query.data.split('_')[-1]
     await join_ttt_o(session_id, sessions, client, callback_query, get_translation, session_cleanup_tasks)
 
-@app.on_callback_query(filters.regex(r"^(\d+)_(\d+)$"))
+@app.on_callback_query(filters.regex(r"^([a-zA-Z0-9]+)_(\d+)$"))
 async def handle_ttt_move(client, callback_query):
     session_id, position = callback_query.data.split('_')
-    session_id = int(session_id)
+    session_id = str(session_id)
     session = sessions.get(session_id)
     if session != None:
         await move_ttt(client, callback_query, sessions[session_id], int(position), session_id, get_translation, save_points)
